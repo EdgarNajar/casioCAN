@@ -79,7 +79,7 @@ void Serial_Init( void )
     /* Declaration of the options to configure the FDCAN1 module to transmit to the CAN bus at 100Kbps
      and sample point of 75%, the frequency with which the CAN module is powered is
      fCAN = fHSI / CANHandler.Init.ClockDivider / CANHandler.Init.NominalPrescaler
-     fCAN = 32MHz / 1 / 20 = 1.6MHz
+     fCAN = 16MHz / 1 / 10 = 1.6MHz
      The number of time quantas required is
      Ntq = fCAN / CANbaudrate
      Ntq = 1.6MHz / 100Kbps = 16 
@@ -97,7 +97,7 @@ void Serial_Init( void )
     CANHandler.Init.ProtocolException    = DISABLE;
     CANHandler.Init.ExtFiltersNbr        = 0;
     CANHandler.Init.StdFiltersNbr        = 1;  /* inicialize filter */
-    CANHandler.Init.NominalPrescaler     = 20;
+    CANHandler.Init.NominalPrescaler     = 10;
     CANHandler.Init.NominalSyncJumpWidth = 1;
     CANHandler.Init.NominalTimeSeg1      = 11;
     CANHandler.Init.NominalTimeSeg2      = 4;
