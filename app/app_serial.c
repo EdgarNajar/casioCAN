@@ -1,12 +1,14 @@
 /**
  * @file    app_serial.c
- * @brief   **message processing implementation**
+ * @brief   **Message processing implementation**
  *
- * contains the functions to initialize the CAN port and the main state machine 
+ * Contains the functions to initialize the CAN port with the apropiate parameters,
+ * the callback to the CAN interruption, also the main state machine to message processing were
+ * the CAN frame will be evaluate to aprove it or not and to be assigned to the struct
+ * variable by the fuction in charge of it.
  *
- * @note    none
+ * @note    None
  */
-
 #include "app_bsp.h"
 #include "app_serial.h"
 
@@ -14,64 +16,52 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
 
 /**
- * @brief  structure type variable for user CAN initialization
+ * @brief  Structure type variable for user CAN initialization
  */
-
 /* cppcheck-suppress misra-c2012-8.4 ; function declared fie app_bsp.h as extern */
 FDCAN_HandleTypeDef CANHandler;
 
 /**
- * @brief  structure type variable for CAN transmissin initialization
+ * @brief  Structure type variable for CAN transmissin initialization
  */
-
 static FDCAN_TxHeaderTypeDef CANTxHeader;
 
 /**
- * @brief  structure type variable for time data
+ * @brief  Structure type variable for time data
  */
-
 APP_MsgTypeDef MSGHandler;
 
 /**
- * @brief  variable for new message
+ * @brief  Variable for new message
  */
-
-static uint8_t NewMessage[8];
+static uint8_t NewMessage[num_8];
 
 /**
- * @brief  variable to indicate the interrup of message occur
+ * @brief  Variable to indicate the interrup of message occur
  */
-
-static uint8_t flagMessage = 0;
+static uint8_t flagMessage = num_0;
 
 /**
- * @brief  to indicate a new message arrived
+ * @brief  To indicate a new message arrived
  */
-  
 static uint8_t msgRecieve;
 
 /**
- * @brief  is used to move in state machine
+ * @brief  Is used to move in state machine
  */
-
-/* cppcheck-suppress misra-c2012-8.9 ; declared as global to access state machine */
-/* cppcheck-suppress misra-c2012-8.4 ; declared as global to access state machine */
 APP_States STATE_CONTROL = STATE_IDLE;
 
 /**
- * @brief   **initialize of CAN port**
+ * @brief   **Initialize of CAN port**
  *
- * is the function to initialize all the required to start working with the CAN port 
+ * Is the function to initialize all the required to start working with the CAN port 
  * and the messages reception processing
  *
- * @param   CANHandler [out] structure type variable to configure CAN operation mode
- * @param   CANTxHeader [out] structure type variable to configure CAN transmicion
+ * @param   CANHandler [out] Structure type variable to configure CAN operation mode
+ * @param   CANTxHeader [out] Structure type variable to configure CAN transmicion
  *
- * @retval  none
- *
- * @note none
+ * @note None
  */
-
 void Serial_Init( void )
 {
     FDCAN_FilterTypeDef CANFilter;
@@ -95,65 +85,65 @@ void Serial_Init( void )
     CANHandler.Init.AutoRetransmission   = DISABLE;
     CANHandler.Init.TransmitPause        = DISABLE;
     CANHandler.Init.ProtocolException    = DISABLE;
-    CANHandler.Init.ExtFiltersNbr        = 0;
-    CANHandler.Init.StdFiltersNbr        = 1;  /* inicialize filter */
-    CANHandler.Init.NominalPrescaler     = 10;
-    CANHandler.Init.NominalSyncJumpWidth = 1;
-    CANHandler.Init.NominalTimeSeg1      = 11;
-    CANHandler.Init.NominalTimeSeg2      = 4;
-    /* set configuration of CAN module*/
+    CANHandler.Init.ExtFiltersNbr        = val_ExtFiltersNbr;
+    CANHandler.Init.StdFiltersNbr        = val_StdFiltersNbr;  /* inicialize filter */
+    CANHandler.Init.NominalPrescaler     = val_NominalPrescaler;
+    CANHandler.Init.NominalSyncJumpWidth = val_NominalSyncJumpWidth;
+    CANHandler.Init.NominalTimeSeg1      = val_NominalTimeSeg1;
+    CANHandler.Init.NominalTimeSeg2      = val_NominalTimeSeg2;
+    /* Set configuration of CAN module*/
     HAL_FDCAN_Init( &CANHandler );
 
     /* Declaration of options for configur parameters of CAN transmicion */
     CANTxHeader.IdType      = FDCAN_STANDARD_ID;
     CANTxHeader.FDFormat    = FDCAN_CLASSIC_CAN;
     CANTxHeader.TxFrameType = FDCAN_DATA_FRAME;
-    CANTxHeader.Identifier  = 0x122;
+    CANTxHeader.Identifier  = val_Identifier;
     CANTxHeader.DataLength  = FDCAN_DLC_BYTES_8;
 
     /* Configure reception filter to Rx FIFO 0, it will only accept messages with ID 0x111 */
     CANFilter.IdType       = FDCAN_STANDARD_ID;
-    CANFilter.FilterIndex  = 0;
+    CANFilter.FilterIndex  = val_FilterIndex;
     CANFilter.FilterType   = FDCAN_FILTER_MASK;
     CANFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-    CANFilter.FilterID1    = 0x111;
-    CANFilter.FilterID2    = 0x7FF;
+    CANFilter.FilterID1    = val_FilterID1;
+    CANFilter.FilterID2    = val_FilterID2;
     HAL_FDCAN_ConfigFilter( &CANHandler, &CANFilter );
-    /* messages without the filter will by rejected*/
+    /* Messages without the filter will by rejected */
     HAL_FDCAN_ConfigGlobalFilter( &CANHandler, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE );
     
     /* Change FDCAN instance from initialization mode to normal mode */
     HAL_FDCAN_Start( &CANHandler );
 
-    /* activate interruption by reception in fifo0 to the arrive of a message */
-    HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0 );
+    /* Activate interruption by reception in fifo0 to the arrive of a message */
+    HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, val_BufferIndexes );
 }
 
 /**
- * @brief   **main state machine**
+ * @brief   **Main state machine**
  *
- * is going to implement the state machine in charge of messages processing
+ * Is going to implement the state machine in charge of messages processing
+ * after the interruption of CAN is trigger, depending if it is a message of time, 
+ * date and alarm it will be evalate if fits the conditions for every type of data,
+ * then a message will be send to indicate success or error.
  *
- * @param   msgRecieve [in] to verify if there is a new message
- * @param   NewMessage [out] to storage the message form CAN
+ * @param   msgRecieve [in] To verify if there is a new message
+ * @param   NewMessage [out] To storage the message form CAN
  *
- * @retval  none
- *
- * @note none
+ * @note None
  */
-
 void Serial_Task( void )
 {
-    uint8_t OkMessage[2]    = {0x01, 0x55};
-    uint8_t ErrorMessage[2] = {0x01, 0xAA};
-    uint16_t year = ( NewMessage[4] << 8 ) + NewMessage[5];
+    uint8_t OkMessage[num_2]    = {hex_1, hex_55};
+    uint8_t ErrorMessage[num_2] = {hex_1, hex_AA};
+    uint16_t year = ( NewMessage[num_4] << num_8 ) + NewMessage[num_5];
     
     switch ( STATE_CONTROL )
     {
         case STATE_IDLE:
             msgRecieve = CanTp_SingleFrameRx( NewMessage, NewMessage );
 
-            if( msgRecieve == 1u )
+            if( msgRecieve == num_1 )
             {
                 STATE_CONTROL = STATE_MESSAGE;
             }
@@ -164,15 +154,18 @@ void Serial_Task( void )
             break;
         
         case STATE_MESSAGE:
-            if( NewMessage[1] == 0x01u )
+            if( (NewMessage[num_1] == num_1) &&
+                (NewMessage[num_0] == num_4) ) // check for single frame code
             {
                 STATE_CONTROL = STATE_TIME;
             }
-            else if( NewMessage[1] == 0x02u )
+            else if( (NewMessage[num_1] == num_2) &&
+                     (NewMessage[num_0] == num_5) ) // check for single frame code
             {
                 STATE_CONTROL = STATE_DATE;
             }
-            else if( NewMessage[1] == 0x03u )
+            else if( (NewMessage[num_1] == num_3) &&
+                     (NewMessage[num_0] == num_3) ) // check for single frame code
             {
                 STATE_CONTROL = STATE_ALARM;
             }
@@ -183,10 +176,10 @@ void Serial_Task( void )
             break;
 
         case STATE_TIME:
-            // check for hours, minutes and seconds
-            if( (NewMessage[2] >= 0x00u) && (NewMessage[2] <= 0x23u) &&
-                (NewMessage[3] >= 0x00u) && (NewMessage[3] <= 0x59u) &&
-                (NewMessage[4] >= 0x00u) && (NewMessage[4] <= 0x59u) ) 
+            // Check for hours, minutes and seconds
+            if( (NewMessage[num_2] >= hex_0) && (NewMessage[num_2] <= hex_23) &&
+                (NewMessage[num_3] >= hex_0) && (NewMessage[num_3] <= hex_59) &&
+                (NewMessage[num_4] >= hex_0) && (NewMessage[num_4] <= hex_59) ) 
             {
                 STATE_CONTROL = STATE_OK;
             }
@@ -197,37 +190,37 @@ void Serial_Task( void )
             break;
         
         case STATE_DATE:
-            // check for days, months and year
-            if( (NewMessage[2] >= 0x01u) && (NewMessage[2] <= 0x31u) &&
-                (NewMessage[3] >= JANUARY) && (NewMessage[3] <= DECEMBER) &&
-                (year >= 0x1901u) && (year <= 0x2099u) )
+            // Check for days, months and year
+            if( (NewMessage[num_2] >= hex_1) && (NewMessage[num_2] <= hex_31) &&
+                (NewMessage[num_3] >= JANUARY) && (NewMessage[num_3] <= DECEMBER) &&
+                (year >= hex_1901) && (year <= hex_2099) )
             {
-                if( (year % 4u) == 0u ) // check leap year, february and coeficient for day of the week
+                if( (year % num_4) == num_0 ) // Check leap year and february
                 {
-                    if( (NewMessage[3] == FEBRUARY) && (NewMessage[2] <= 0x29u) )
+                    if( (NewMessage[num_3] == FEBRUARY) && (NewMessage[num_2] <= hex_29) )
                     {
                         STATE_CONTROL = STATE_OK;
                     }
                 }
-                else if( (NewMessage[3] == FEBRUARY) && (NewMessage[2] <= 0x28u) ) // check for february
+                else if( (NewMessage[num_3] == FEBRUARY) && (NewMessage[num_2] <= hex_28) ) // Check for february
                 {
                     STATE_CONTROL = STATE_OK;
                 }
-                else if( ( (NewMessage[3] == APRIL) || 
-                           (NewMessage[3] == JUNE) || 
-                           (NewMessage[3] == SEPTEMBER) || 
-                           (NewMessage[3] == NOVEMBER)) && 
-                           (NewMessage[3] <= 0x30u) ) // check for months with 30 days
+                else if( ( (NewMessage[num_3] == APRIL) || 
+                           (NewMessage[num_3] == JUNE) || 
+                           (NewMessage[num_3] == SEPTEMBER) || 
+                           (NewMessage[num_3] == NOVEMBER)) && 
+                           (NewMessage[num_3] <= hex_30) ) // Check for months with 30 days
                 {
                     STATE_CONTROL = STATE_OK;
                 }
-                else if( (NewMessage[3] == JANUARY) || 
-                         (NewMessage[3] == MARCH) || 
-                         (NewMessage[3] == MAY) || 
-                         (NewMessage[3] == JULY) || 
-                         (NewMessage[3] == AUGUST) ||
-                         (NewMessage[3] == OCTOBER) || 
-                         (NewMessage[3] == DECEMBER) ) // otherwise, the month has 31 days
+                else if( (NewMessage[num_3] == JANUARY) || 
+                         (NewMessage[num_3] == MARCH) || 
+                         (NewMessage[num_3] == MAY) || 
+                         (NewMessage[num_3] == JULY) || 
+                         (NewMessage[num_3] == AUGUST) ||
+                         (NewMessage[num_3] == OCTOBER) || 
+                         (NewMessage[num_3] == DECEMBER) ) // Otherwise, the month has 31 days
                 {
                     STATE_CONTROL = STATE_OK;
                 }
@@ -241,9 +234,9 @@ void Serial_Task( void )
             break;
 
         case STATE_ALARM:
-            // check for hours and minutes
-            if( (NewMessage[2] >= 0x00u) && (NewMessage[2] <= 0x23u) &&
-                (NewMessage[3] >= 0x00u) && (NewMessage[3] <= 0x59u) )
+            // Check for hours and minutes
+            if( (NewMessage[num_2] >= hex_0) && (NewMessage[num_2] <= hex_23) &&
+                (NewMessage[num_3] >= hex_0) && (NewMessage[num_3] <= hex_59) )
             {
                 STATE_CONTROL = STATE_OK;
             }
@@ -254,12 +247,12 @@ void Serial_Task( void )
             break;
 
         case STATE_OK:
-            CanTp_SingleFrameTx( OkMessage, 2 );
+            CanTp_SingleFrameTx( OkMessage, num_1 );
             STATE_CONTROL = STATE_IDLE;
             break;
     
         case STATE_ERROR:
-            CanTp_SingleFrameTx( ErrorMessage, 2 );
+            CanTp_SingleFrameTx( ErrorMessage, num_1 );
             STATE_CONTROL = STATE_IDLE;
             break;
 
@@ -269,43 +262,42 @@ void Serial_Task( void )
 }
 
 /**
- * @brief   **reception of CAN messages**
+ * @brief   **Reception of CAN messages**
  *
- * add the new message to the fifo queue
+ * Add the new message to the fifo queue
  *
- * @param   NewMessage [in] to storage the message form CAN
- * @param   flagMessage [out] flag to indicate a new message arrive
+ * @param   hfdcan [in] To handle CAN
+ * @param   RxFifo0ITs [in] To storage the CAN message
+ * @param   flagMessage [out] Flag to indicate a new message arrive
+ * @param   NewMessage [out] Function to storage the new message
  *
- * @retval  none
- *
- * @note none
+ * @note None
  */
-
 /* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
 void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs )
 {
     FDCAN_RxHeaderTypeDef CANRxHeader;
 
-    if(( RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE ) != 0 )
+    if(( RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE ) != num_0 )
     {
         /* Retrieve Rx messages from RX FIFO0 */
         HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, NewMessage );
         
-        flagMessage = 1u;
+        flagMessage = num_0;
     }
 }
 
 /**
- * @brief   **to send the bytes specified**
+ * @brief   **To send the bytes specified**
  *
- * this function add the new message to the bufer with the help of the function
+ * This function add the new message to the bufer with the help of the function
  * HAL_FDCAN_AddMessageToTxFifoQ defined in HAL library
  *
- * @retval  none
- *
- * @note none
+ * @param   data [in] Pointer to data
+ * @param   size [in] Size of data
+ * 
+ * @note None
  */
-
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 {
     UNUSED(size);
@@ -313,57 +305,58 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 }
 
 /**
- * @brief   **to read messages from CAN**
+ * @brief   **To read messages from CAN**
  *
- *  the function not validate any message received, just read the bytes from CAN
+ * The function not validate any message received, just read the bytes from CAN
  *
- * @param   msgRecieve [out] to verify if there is a new message
- * @param   flagMessage [in/out] flag to indicate a new message arrive
- * @param   MSGHandler [out] structure type variable to place all data
+ * @param   data [in] Pointer to data
+ * @param   size [in] Size of data
+ * @param   msgRecieve [out] To verify if there is a new message
+ * @param   flagMessage [in/out] Flag to indicate a new message arrive
+ * @param   MSGHandler [out] Structure type variable to place all data
  *
- * @retval  the function returns 1 when a certain number of bytes were received, 
+ * @retval  The function returns 1 when a certain number of bytes were received, 
  *          otherwise, no message was received
  *
- * @note none
+ * @note None
  */
-
 static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size )
 {
     UNUSED(size);
-    APP_Messages message = data[1];
+    APP_Messages message = data[num_1];
     msgRecieve = SERIAL_MSG_NONE;
 
-    if( flagMessage == 1u )
+    if( flagMessage == num_1 )
     {
-        MSGHandler.msg = data[1];
+        MSGHandler.msg = data[num_1];
 
         switch ( message )
         {
             case SERIAL_MSG_TIME:
-                MSGHandler.tm.tm_hour = data[2];
-                MSGHandler.tm.tm_min  = data[3];
-                MSGHandler.tm.tm_sec  = data[4];
+                MSGHandler.tm.tm_hour = data[num_2];
+                MSGHandler.tm.tm_min  = data[num_3];
+                MSGHandler.tm.tm_sec  = data[num_4];
                break;
 
             case SERIAL_MSG_DATE:
-                MSGHandler.tm.tm_mday = data[2];
-                MSGHandler.tm.tm_mon  = data[3];
-                MSGHandler.tm.tm_yday = data[4];
-                MSGHandler.tm.tm_year = data[5];
+                MSGHandler.tm.tm_mday = data[num_2];
+                MSGHandler.tm.tm_mon  = data[num_3];
+                MSGHandler.tm.tm_yday = data[num_4];
+                MSGHandler.tm.tm_year = data[num_5];
                 break;
 
 
             case SERIAL_MSG_ALARM:
-                MSGHandler.tm.tm_hour = data[2];
-                MSGHandler.tm.tm_min  = data[3];
+                MSGHandler.tm.tm_hour = data[num_2];
+                MSGHandler.tm.tm_min  = data[num_3];
                 break;
         
             default :
                 break;
         }
 
-        flagMessage = 0;
-        msgRecieve = 1u;
+        flagMessage = num_0;
+        msgRecieve  = num_1;
     }
 
     return msgRecieve;

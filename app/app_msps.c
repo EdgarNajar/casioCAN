@@ -1,25 +1,22 @@
 /**
  * @file    app_msps.c
- * @brief   **auxiliar library functions**
+ * @brief   **Auxiliar library functions**
  *
- * file with the functions of the auxiliar initializations of HAL library
+ * File with the functions of the auxiliar initializations of HAL library,
+ * here will be the declaration and configuration of the pins to control
+ * each part of the clock, such as the FDCAN pins
  *
- * @note    none
+ * @note    None
  */
- 
 #include "app_bsp.h"
-#include "app_serial.h"
 
 /**
  * @brief   **CPU's microcontrollers speed**
  *
- * increase the clock speed of the microcontroller to 64MHz
+ * Increase the clock speed of the microcontroller to 64MHz
  *
- * @retval  none
- *
- * @note none
+ * @note None
  */
-
 /* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
 void HAL_MspInit( void )
 {
@@ -29,14 +26,11 @@ void HAL_MspInit( void )
 /**
  * @brief   **CAN pin configuration**
  *
- * function with the pin configuration of GPIOD pin 0(rx) and pin 1(tx)
+ * Function with the pin configuration of GPIOD pin 0(rx) and pin 1(tx)
  * in altern mode for FDCAN1
  *
- * @retval  none
- *
- * @note none
+ * @note None
  */
-
 /* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
 /* cppcheck-suppress misra-c2012-2.7 ; function defined in HAL library */
 void HAL_FDCAN_MspInit( FDCAN_HandleTypeDef *hfdcan )
