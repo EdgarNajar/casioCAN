@@ -74,14 +74,13 @@ void SysTick_Handler( void )
 }
 
 /**
- * @brief   **CAN interrupt handler**
+ * @brief   **CAN interrupt vector**
  *
- * Function to handle the CAN interrupt
+ * Exception handler to the Default_Handler
  *
  * @note None
  */
 /* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
-
 void TIM16_FDCAN_IT0_IRQHandler( void )
 {
     HAL_FDCAN_IRQHandler( &CANHandler );
