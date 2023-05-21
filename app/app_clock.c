@@ -162,16 +162,6 @@ void Clock_Task( void )
             /* Get the RTC current Date */
             HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
 
-            ClockMsg.tm.tm_mday = sDate.Date;
-            ClockMsg.tm.tm_mon  = sDate.Month;
-            ClockMsg.tm.tm_year = sDate.Year;
-            ClockMsg.tm.tm_wday = sDate.WeekDay;
-
-            ClockMsg.tm.tm_hour = sTime.Hours;
-            ClockMsg.tm.tm_min  = sTime.Minutes;
-            ClockMsg.tm.tm_sec  = sTime.Seconds;
-
-            ClockMsg.msg = changes;
             break;
 
         default :
