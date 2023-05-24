@@ -1,8 +1,10 @@
 /**
  * @file    app_bsp.h
- * @brief   **Auxiliar file**
+ * @brief   **Structures, enums and variables**
  *
- * Auxiliar file
+ * File with the declaration of structures and enums to storage
+ * time, date and alarm, global variables to initialize the CAN protocol
+ * and to access the state machine for message processing
  *
  * @note    None
  */
@@ -17,15 +19,15 @@
   */
 typedef struct _APP_TmTypeDef 
 {
-    uint32_t tm_sec;         /*!< seconds,  range 0 to 59          */
-    uint32_t tm_min;         /*!< minutes, range 0 to 59           */
-    uint32_t tm_hour;        /*!< hours, range 0 to 23             */
-    uint32_t tm_mday;        /*!< day of the month, range 1 to 31  */
-    uint32_t tm_mon;         /*!< month, range 0 to 11             */
-    uint32_t tm_year;        /*!< years in rage 1900 2100          */
-    uint32_t tm_wday;        /*!< day of the week, range 0 to 6    */
-    uint32_t tm_yday;        /*!< day in the year, range 0 to 365  */
-    uint32_t tm_isdst;       /*!< daylight saving time             */
+    uint32_t tm_sec;         /*!< Seconds,  range 0 to 59          */
+    uint32_t tm_min;         /*!< Minutes, range 0 to 59           */
+    uint32_t tm_hour;        /*!< Hours, range 0 to 23             */
+    uint32_t tm_mday;        /*!< Day of the month, range 1 to 31  */
+    uint32_t tm_mon;         /*!< Month, range 0 to 11             */
+    uint32_t tm_year;        /*!< Years in rage 1900 2100          */
+    uint32_t tm_wday;        /*!< Day of the week, range 0 to 6    */
+    uint32_t tm_yday;        /*!< Day in the year, range 0 to 365  */
+    uint32_t tm_isdst;       /*!< Daylight saving time             */
 }APP_TmTypeDef;
 
 /**
@@ -34,30 +36,30 @@ typedef struct _APP_TmTypeDef
 typedef struct _APP_MsgTypeDef
 {
     uint8_t msg;          /*!< Store the message type to send    */
-    APP_TmTypeDef tm;     /*!< time and date in stdlib tm format */
+    APP_TmTypeDef tm;     /*!< Time and date in stdlib tm format */
 }APP_MsgTypeDef;
 
 /**
   * @brief   Enum for kind af message
   */
 typedef enum{
-    SERIAL_MSG_NONE = 0u, /*!< no serial message    */
-    SERIAL_MSG_TIME,      /*!< time serial message  */
-    SERIAL_MSG_DATE,      /*!< date serial message  */
-    SERIAL_MSG_ALARM      /*!< alarm serial message */
+    SERIAL_MSG_NONE = 0u, /*!< No serial message    */
+    SERIAL_MSG_TIME,      /*!< Time serial message  */
+    SERIAL_MSG_DATE,      /*!< Date serial message  */
+    SERIAL_MSG_ALARM      /*!< Alarm serial message */
 }APP_Messages;
 
 /**
   * @brief   Enum for states control
   */
 typedef enum{
-    STATE_IDLE = 1u, /*!< wait for a message    */
-    STATE_MESSAGE,   /*!< message recieve       */
-    STATE_TIME,      /*!< time message          */
-    STATE_DATE,      /*!< date message          */
-    STATE_ALARM,     /*!< alarm message         */
-    STATE_OK,        /*!< message recieve ok    */
-    STATE_ERROR      /*!< message recieve error */
+    STATE_IDLE = 1u, /*!< Wait for a message    */
+    STATE_MESSAGE,   /*!< Message recieve       */
+    STATE_TIME,      /*!< Time message          */
+    STATE_DATE,      /*!< Date message          */
+    STATE_ALARM,     /*!< Alarm message         */
+    STATE_OK,        /*!< Message recieve ok    */
+    STATE_ERROR      /*!< Message recieve error */
 }APP_States;
 
 /**
@@ -73,7 +75,7 @@ extern FDCAN_HandleTypeDef CANHandler;
 /**
  * @brief  Is used to move in state machine
  */
-extern APP_States STATE_CONTROL;
+extern APP_States state_control;
 
 #endif
 

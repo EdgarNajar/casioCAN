@@ -1,8 +1,9 @@
 /**
  * @file    app_ints.c
- * @brief   **File of interrupt functions**
+ * @brief   **File of interrupt vectors**
  *
- * File of interrupt functions
+ * File of the interrupt vectors, to be able to process the information recieved
+ * through CAN protocol
  *
  * @note    Check startup_stm32g0b1.S file
  */
@@ -76,7 +77,7 @@ void SysTick_Handler( void )
 /**
  * @brief   **CAN interrupt vector**
  *
- * Exception handler to the Default_Handler
+ * Activates the CAN interrupt vector on TIM16
  *
  * @note None
  */

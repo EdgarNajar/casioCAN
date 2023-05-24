@@ -1,6 +1,6 @@
 /**
  * @file    app_msps.c
- * @brief   **Auxiliar library functions**
+ * @brief   **Clock frequencies and peripherals configuration for CasioCAN**
  *
  * File with the functions of the auxiliar initializations of HAL library,
  * here will be the declaration and configuration of the pins to control
