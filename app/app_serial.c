@@ -160,22 +160,22 @@ void Serial_Task( void )
             
             if( msgRecieve == num_1 )
             {
-                if( NewMessage[num_0] == SERIAL_MSG_TIME )
+                if( NewMessage[num_0] == (uint8_t)SERIAL_MSG_TIME )
                 {
                     state_control = STATE_TIME;
                 }
-                else if( NewMessage[num_0] == SERIAL_MSG_DATE )
+                else if( NewMessage[num_0] == (uint8_t)SERIAL_MSG_DATE )
                 {
                     state_control = STATE_DATE;
                 }
-                else if( NewMessage[num_0] == SERIAL_MSG_ALARM ) 
+                else if( NewMessage[num_0] == (uint8_t)SERIAL_MSG_ALARM ) 
                 {
                     state_control = STATE_ALARM;
                 }
                 else
                 {}
             }
-            else if( msgRecieve == SERIAL_MSG_NONE )
+            else if( msgRecieve == (uint8_t)SERIAL_MSG_NONE )
             {
                 state_control = STATE_ERROR;
             }
