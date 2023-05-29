@@ -12,8 +12,6 @@
 #include "app_serial.h"
 #include "app_clock.h"
 
-extern void initialise_monitor_handles(void);
-
 /**
  * @brief   **Implementation of the main program**
  *
@@ -25,7 +23,6 @@ extern void initialise_monitor_handles(void);
 int main( void )
 {
     HAL_Init();
-    initialise_monitor_handles();
     Serial_Init();
     Clock_Init();
 

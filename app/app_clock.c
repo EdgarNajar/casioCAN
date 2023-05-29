@@ -13,22 +13,22 @@
 /**
  * @brief  Structure type variable to initialize the RTC
  */
-static RTC_HandleTypeDef hrtc = {num_0};
+static RTC_HandleTypeDef hrtc;
 
 /**
  * @brief  Structure type valriable for user RTC date initialization
  */
-RTC_DateTypeDef  sDate  = {num_0};
+static RTC_DateTypeDef  sDate;
 
 /**
  * @brief  Structure type valriable for user RTC time initialization
  */
-RTC_TimeTypeDef  sTime  = {num_0};
+static RTC_TimeTypeDef  sTime;
 
 /**
  * @brief  Structure type valriable for user RTC alarm initialization
  */
-RTC_AlarmTypeDef sAlarm = {num_0};
+static RTC_AlarmTypeDef sAlarm;
 
 /**
  * @brief  Variable to control changes in time data
@@ -53,6 +53,8 @@ uint32_t tick_display;
  */
 void Clock_Init( void )
 {
+    initialise_monitor_handles();
+    
     /* Configuration RTC */
     hrtc.Instance             = RTC;
     hrtc.Init.HourFormat      = RTC_HOURFORMAT_24;

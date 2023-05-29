@@ -66,4 +66,6 @@
 extern void Clock_Init( void );
 extern void Clock_Task( void );
 
+extern void initialise_monitor_handles(void);
+
 #endif
