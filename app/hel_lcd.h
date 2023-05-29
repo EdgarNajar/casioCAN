@@ -1,10 +1,15 @@
 /**
  * @file    hel_lcd.h
- * @brief   **structures and function prototypes**
+ * @brief   **LCD driver**
  *
- * declaration of all structures and function prototypes to initialize the LCD 
+ * This is a driver that configures and controls an alphanumeric LCD through SPI,
+ * The LCD-SPI board has an alphanumeric LCD NHD-C0216CZ-NSW-BBW-3V3 from Newhaven, 
+ * which is capable of displaying 2x16 lines of characters. Internally, 
+ * the display has the Sitronix ST7032 controller in charge of keeping the characters displayed 
+ * on the display without the need to continually refresh the screen. The operating voltage 
+ * of the board is 3.3v with backlight included. 
  *
- * @note    none
+ * @note    None
  */
  
 #ifndef HEL_LCD_H__
@@ -13,34 +18,33 @@
 #include "app_bsp.h"
 
 /**
-  * @brief   structure for LCD
+  * @brief   Structure for LCD control
   */
-
 typedef struct
 {
-    SPI_HandleTypeDef   *SpiHandler;    /* SPI handler address of the spi to use with the LCD */
-    GPIO_TypeDef        *RstPort;       /* port where the pin to control the LCD reset pin is */
-    uint32_t            RstPin;         /* pin to control the LCD reset pin */
-    GPIO_TypeDef        *RsPort;        /* port where the pin to control the LCD RS pin */
-    uint32_t            RsPin;          /* pin to control the LCD RS pin */
-    GPIO_TypeDef        *CsPort;        /* port where the pin to control the LCD chip select is */
-    uint32_t            CsPin;          /* pin to control the LCD chip select pin */
-    GPIO_TypeDef        *BklPort;       /* port where the pin to control the LCD backlight is */
-    uint32_t            BklPin;         /* pin to control the LCD backlight pin */
+    SPI_HandleTypeDef   *SpiHandler;    /*!< SPI handler address of the spi to use with the LCD */
+    GPIO_TypeDef        *RstPort;       /*!< Port where the pin to control the LCD reset pin is */
+    uint32_t            RstPin;         /*!< Pin to control the LCD reset pin */
+    GPIO_TypeDef        *RsPort;        /*!< Port where the pin to control the LCD RS pin */
+    uint32_t            RsPin;          /*!< Pin to control the LCD RS pin */
+    GPIO_TypeDef        *CsPort;        /*!< Port where the pin to control the LCD chip select is */
+    uint32_t            CsPin;          /*!< Pin to control the LCD chip select pin */
+    GPIO_TypeDef        *BklPort;       /*!< Port where the pin to control the LCD backlight is */
+    uint32_t            BklPin;         /*!< Pin to control the LCD backlight pin */
 } LCD_HandleTypeDef;
 
 /** 
   * @defgroup LCD instruction code
   @{ */
-#define wakeup                 0x30  /*!< wakeup code  */
-#define function_set           0x39  /*!< Function set code  */
-#define internal_osc_frequency 0x14  /*!< Internal osc frequency code  */
-#define power_control          0x56  /*!< Power control code  */
-#define follower_control       0x6D  /*!< Follower control code  */
-#define contrast_cmd           0x70  /*!< Contrast code  */
-#define display_on             0x0C  /*!< Display on code  */
-#define entry_mode             0x06  /*!< Entry mode code  */
-#define clear_screen           0x01  /*!< Clear screen code  */
+#define wakeup                 0x30  /*!< wakeup code                 */
+#define function_set           0x39  /*!< Function set code           */
+#define internal_osc_frequency 0x14  /*!< Internal osc frequency code */
+#define power_control          0x56  /*!< Power control code          */
+#define follower_control       0x6D  /*!< Follower control code       */
+#define contrast_cmd           0x70  /*!< Contrast code               */
+#define display_on             0x0C  /*!< Display on code             */
+#define entry_mode             0x06  /*!< Entry mode code             */
+#define clear_screen           0x01  /*!< Clear screen code           */
 /**
   @} */
 
