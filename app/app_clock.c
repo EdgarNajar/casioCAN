@@ -16,6 +16,21 @@
 static RTC_HandleTypeDef hrtc = {num_0};
 
 /**
+ * @brief  Structure type valriable for user RTC date initialization
+ */
+RTC_DateTypeDef  sDate  = {num_0};
+
+/**
+ * @brief  Structure type valriable for user RTC time initialization
+ */
+RTC_TimeTypeDef  sTime  = {num_0};
+
+/**
+ * @brief  Structure type valriable for user RTC alarm initialization
+ */
+RTC_AlarmTypeDef sAlarm = {num_0};
+
+/**
  * @brief  Variable to control changes in time data
  */
 uint8_t changes = WAIT_MESSAGE;
@@ -24,11 +39,6 @@ uint8_t changes = WAIT_MESSAGE;
  * @brief  To store milisecods for display
  */
 uint32_t tick_display;
-
-/**
- * @brief  To set the default date and time
- */
-uint8_t default_data = num_1;
 
 /**
  * @brief   **RTC peripheral**
@@ -53,6 +63,35 @@ void Clock_Init( void )
     HAL_RTC_Init( &hrtc );
 
     tick_display = HAL_GetTick();
+
+    /* Setting default time at 23:59:50 in BCD format */
+    sTime.Hours   = def_Hours;
+    sTime.Minutes = def_Minutes;
+    sTime.Seconds = def_Seconds;
+    sTime.SubSeconds = def_SubSeconds;
+    sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+    HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
+
+    /* Setting default date at Monday January 31, 2023 in BCD format */
+    sDate.WeekDay = RTC_WEEKDAY_TUESDAY;
+    sDate.Month = RTC_MONTH_JANUARY;
+    sDate.Date = def_Date;
+    sDate.Year = def_YearLSB;
+    MSGHandler.tm.tm_yday = def_YearMSB;
+    HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+
+    sAlarm.AlarmTime.Hours   = def_Alarm_Hour;
+    sAlarm.AlarmTime.Minutes = def_Alarm_Minutes;
+    sAlarm.AlarmTime.Seconds = def_Alarm_Seconds;
+    sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+    sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+    sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+    sAlarm.AlarmDateWeekDay = 0x12;
+    sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+    sAlarm.Alarm = RTC_ALARM_A;
+    HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
 }
 
 /**
@@ -69,45 +108,6 @@ void Clock_Init( void )
  */
 void Clock_Task( void )
 {
-    RTC_DateTypeDef  sDate  = {num_0};
-    RTC_TimeTypeDef  sTime  = {num_0};
-    RTC_AlarmTypeDef sAlarm = {num_0};
-
-    if( default_data == num_1 )
-    {
-        default_data++;
-        /* Setting default time at 23:59:50 in BCD format */
-        sTime.Hours   = def_Hours;
-        sTime.Minutes = def_Minutes;
-        sTime.Seconds = def_Seconds;
-        sTime.SubSeconds = def_SubSeconds;
-        sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-        sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-        HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
-
-        /* Setting default date at Monday January 31, 2023 in BCD format */
-        sDate.WeekDay = RTC_WEEKDAY_TUESDAY;
-        sDate.Month = RTC_MONTH_JANUARY;
-        sDate.Date = def_Date;
-        sDate.Year = def_YearLSB;
-        MSGHandler.tm.tm_yday = def_YearMSB;
-        HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
-
-        sAlarm.AlarmTime.Hours   = def_Alarm_Hour;
-        sAlarm.AlarmTime.Minutes = def_Alarm_Minutes;
-        sAlarm.AlarmTime.Seconds = def_Alarm_Seconds;
-        sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-        sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
-        sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
-        sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-        sAlarm.AlarmDateWeekDay = 0x12;
-        sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
-        sAlarm.Alarm = RTC_ALARM_A;
-        HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
-    }
-    else
-    {}
-
     switch( changes )
     {
         case WAIT_MESSAGE:
@@ -169,6 +169,8 @@ void Clock_Task( void )
             HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
             /* Get the RTC current Date */
             HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
+            /* Get the RTC current Alarm */
+            HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
 
             (void)printf("Time:  %02d:%02d:%02d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds);
             (void)printf("Date:  %02d/%02d/%ld%d\n\r", sDate.Month, sDate.Date, MSGHandler.tm.tm_yday, sDate.Year);

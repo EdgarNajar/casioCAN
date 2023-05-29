@@ -83,7 +83,7 @@ extern FDCAN_HandleTypeDef CANHandler;
 extern APP_States state_control;
 
 /**
- * @brief  to determine the type of data that changed
+ * @brief  To determine the type of data that changed
  */
 extern uint8_t changes;
 
@@ -96,6 +96,8 @@ extern uint32_t tick_display;
  * @brief  To set the default date and time
  */
 extern uint8_t default_data;
+
+extern void initialise_monitor_handles(void);
 
 #endif
 

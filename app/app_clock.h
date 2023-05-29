@@ -13,32 +13,55 @@
 
 #include "app_bsp.h"
 
+/** 
+  * @defgroup Name of states of state machine
+  @{ */
 #define WAIT_MESSAGE (uint8_t)0
 #define CHANGE_TIME  (uint8_t)1
 #define CHANGE_DATE  (uint8_t)2
 #define CHANGE_ALARM (uint8_t)3
 #define DISPLAY      (uint8_t)4
+/**
+  @} */
 
+/** 
+  * @defgroup Values for RTC initialization
+  @{ */
 #define val_AsynchPrediv (uint8_t)127
 #define val_SynchPrediv  (uint8_t)255
+/**
+  @} */
 
-#define def_Hours      (uint8_t)0x23
-#define def_Minutes    (uint8_t)0x59
-#define def_Seconds    (uint8_t)0x50
-#define def_SubSeconds (uint8_t)0x00
-
-#define def_Date    (uint8_t)0x31
-#define def_YearLSB (uint8_t)0x23
-#define def_YearMSB (uint8_t)20
-
+/** 
+  * @defgroup Valies for default data
+  @{ */
+#define def_Hours         (uint8_t)0x23
+#define def_Minutes       (uint8_t)0x59
+#define def_Seconds       (uint8_t)0x50
+#define def_SubSeconds    (uint8_t)0x00
+#define def_Date          (uint8_t)0x31
+#define def_YearLSB       (uint8_t)0x23
+#define def_YearMSB       (uint8_t)20
 #define def_Alarm_Hour    (uint8_t)0x20
 #define def_Alarm_Minutes (uint8_t)0x00
 #define def_Alarm_Seconds (uint8_t)0x00
+/**
+  @} */
 
+/** 
+  * @defgroup Amount of miliseconds to display
+  @{ */
 #define one_second (uint8_t)1000
+/**
+  @} */
 
+/** 
+  * @defgroup Defines for numbers
+  @{ */
 #define num_0 (uint8_t)0
 #define num_1 (uint8_t)1
+/**
+  @} */
 
 extern void Clock_Init( void );
 extern void Clock_Task( void );
