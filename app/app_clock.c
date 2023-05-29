@@ -90,7 +90,7 @@ void Clock_Init( void )
     sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
     sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
     sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-    sAlarm.AlarmDateWeekDay = 0x12;
+    // sAlarm.AlarmDateWeekDay = 0x12;
     sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
     sAlarm.Alarm = RTC_ALARM_A;
     HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
@@ -167,12 +167,13 @@ void Clock_Task( void )
 
         case DISPLAY:
             changes = WAIT_MESSAGE;
+            
             /* Get the RTC current Time */
             HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
             /* Get the RTC current Date */
             HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
             /* Get the RTC current Alarm */
-            HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+            HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
 
             (void)printf("Time:  %02d:%02d:%02d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds);
             (void)printf("Date:  %02d/%02d/%ld%d\n\r", sDate.Month, sDate.Date, MSGHandler.tm.tm_yday, sDate.Year);
