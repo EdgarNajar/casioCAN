@@ -35,12 +35,12 @@ APP_MsgTypeDef MSGHandler;
 /**
  * @brief  Variable for new message
  */
-static uint8_t NewMessage[num_8];
+static uint8_t NewMessage[NUM_8];
 
 /**
  * @brief  Variable to indicate the interrup of message occur
  */
-static uint8_t flagMessage = num_0;
+static uint8_t flagMessage = NUM_0;
 
 /**
  * @brief  To indicate a new message arrived
@@ -84,12 +84,12 @@ void Serial_Init( void )
     CANHandler.Init.AutoRetransmission   = DISABLE;
     CANHandler.Init.TransmitPause        = DISABLE;
     CANHandler.Init.ProtocolException    = DISABLE;
-    CANHandler.Init.ExtFiltersNbr        = val_ExtFiltersNbr;
-    CANHandler.Init.StdFiltersNbr        = val_StdFiltersNbr;  /* inicialize filter */
-    CANHandler.Init.NominalPrescaler     = val_NominalPrescaler;
-    CANHandler.Init.NominalSyncJumpWidth = val_NominalSyncJumpWidth;
-    CANHandler.Init.NominalTimeSeg1      = val_NominalTimeSeg1;
-    CANHandler.Init.NominalTimeSeg2      = val_NominalTimeSeg2;
+    CANHandler.Init.ExtFiltersNbr        = VAL_EXTFILTERSNBR;
+    CANHandler.Init.StdFiltersNbr        = VAL_STDFILTERSNDR;  /* inicialize filter */
+    CANHandler.Init.NominalPrescaler     = VAL_NOMINALPRESCALER;
+    CANHandler.Init.NominalSyncJumpWidth = VAL_NOMINALSYNCJUMPWIDTH;
+    CANHandler.Init.NominalTimeSeg1      = VAL_NOMINALTIMESEG1;
+    CANHandler.Init.NominalTimeSeg2      = VAL_NOMINALTIMESEG2;
     /* Set configuration of CAN module*/
     HAL_FDCAN_Init( &CANHandler );
 
@@ -97,16 +97,16 @@ void Serial_Init( void )
     CANTxHeader.IdType      = FDCAN_STANDARD_ID;
     CANTxHeader.FDFormat    = FDCAN_CLASSIC_CAN;
     CANTxHeader.TxFrameType = FDCAN_DATA_FRAME;
-    CANTxHeader.Identifier  = val_Identifier;
+    CANTxHeader.Identifier  = VAL_IDENTIFIER;
     CANTxHeader.DataLength  = FDCAN_DLC_BYTES_8;
 
     /* Configure reception filter to Rx FIFO 0, it will only accept messages with ID 0x111 */
     CANFilter.IdType       = FDCAN_STANDARD_ID;
-    CANFilter.FilterIndex  = val_FilterIndex;
+    CANFilter.FilterIndex  = VAL_FILTERINDEX;
     CANFilter.FilterType   = FDCAN_FILTER_MASK;
     CANFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-    CANFilter.FilterID1    = val_FilterID1;
-    CANFilter.FilterID2    = val_FilterID2;
+    CANFilter.FilterID1    = VAL_FILTERID1;
+    CANFilter.FilterID2    = VAL_FILTERID2;
     HAL_FDCAN_ConfigFilter( &CANHandler, &CANFilter );
 
     /* Messages without the filter will by rejected */
@@ -116,7 +116,7 @@ void Serial_Init( void )
     HAL_FDCAN_Start( &CANHandler );
 
     /* Activate interruption by reception in fifo0 to the arrive of a message */
-    HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, val_BufferIndexes );
+    HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, VAL_BUFFERINDEXES );
 }
 
 /**
@@ -136,14 +136,14 @@ void Serial_Init( void )
  */
 void Serial_Task( void )
 {
-    uint8_t i = num_0;
-    uint8_t msn_error[1] = {hex_AA};
-    uint8_t msn_ok[1]    = {hex_55};
+    uint8_t i = NUM_0;
+    uint8_t msn_error[NUM_1] = {HEX_AA};
+    uint8_t msn_ok[NUM_1]    = {HEX_55};
     
     switch ( state_control )
     {
         case STATE_IDLE:
-            if( flagMessage == num_1 )
+            if( flagMessage == NUM_1 )
             {
                 state_control = STATE_MESSAGE;
             }
@@ -152,23 +152,23 @@ void Serial_Task( void )
                 state_control = STATE_IDLE;
             }
 
-            flagMessage = num_0;
+            flagMessage = NUM_0;
             break;
         
         case STATE_MESSAGE:
-            msgRecieve = CanTp_SingleFrameRx( &NewMessage[num_1], &NewMessage[num_0] );
+            msgRecieve = CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] );
             
-            if( msgRecieve == num_1 )
+            if( msgRecieve == NUM_1 )
             {
-                if( NewMessage[num_0] == (uint8_t)SERIAL_MSG_TIME )
+                if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_TIME )
                 {
                     state_control = STATE_TIME;
                 }
-                else if( NewMessage[num_0] == (uint8_t)SERIAL_MSG_DATE )
+                else if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_DATE )
                 {
                     state_control = STATE_DATE;
                 }
-                else if( NewMessage[num_0] == (uint8_t)SERIAL_MSG_ALARM ) 
+                else if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_ALARM ) 
                 {
                     state_control = STATE_ALARM;
                 }
@@ -185,58 +185,57 @@ void Serial_Task( void )
 
         case STATE_TIME:
             // Check for hours, minutes and seconds
-            Valid_Time( &NewMessage[num_0] );
+            Valid_Time( &NewMessage[NUM_0] );
             break;
         
         case STATE_DATE:
             // Check for days, months and year
-            Valid_Date( &NewMessage[num_0] );
+            Valid_Date( &NewMessage[NUM_0] );
             break;
 
         case STATE_ALARM:
             // Check for hours and minutes
-            Valid_Time( &NewMessage[num_0] );
+            Valid_Time( &NewMessage[NUM_0] );
             break;
 
         case STATE_OK:
-            if( NewMessage[num_0] == num_1 )
+            if( NewMessage[NUM_0] == NUM_1 )
             {
-                i = (num_4 << 4) + (hex_55 & hex_0F);
+                i = (NUM_4 << NUM_4) + (HEX_55 & HEX_0F);
             }
-            else if( NewMessage[num_0] == num_2 )
+            else if( NewMessage[NUM_0] == NUM_2 )
             {
-                i = (num_5 << 4) + (hex_55 & hex_0F);
+                i = (NUM_5 << NUM_4) + (HEX_55 & HEX_0F);
             }
-            else if( NewMessage[num_0] == num_3 )
+            else if( NewMessage[NUM_0] == NUM_3 )
             {
-                i = (num_3 << 4) + (hex_55 & hex_0F);
+                i = (NUM_3 << NUM_4) + (HEX_55 & HEX_0F);
             }
             else
             {}
 
-            CanTp_SingleFrameTx( &msn_ok[num_0], i );
+            CanTp_SingleFrameTx( &msn_ok[NUM_0], i );
             
             state_control = STATE_IDLE;
             break;
     
         case STATE_ERROR:
-            if( NewMessage[num_0] == num_1 )
+            if( NewMessage[NUM_0] == NUM_1 )
             {
-                i = (num_4 << 4) + (hex_AA & hex_0F);
+                i = (NUM_4 << NUM_4) + (HEX_AA & HEX_0F);
             }
-            else if( NewMessage[num_0] == num_2 )
+            else if( NewMessage[NUM_0] == NUM_2 )
             {
-                i = (num_5 << 4) + (hex_AA & hex_0F);
-
+                i = (NUM_5 << NUM_4) + (HEX_AA & HEX_0F);
             }
-            else if( NewMessage[num_0] == num_3 )
+            else if( NewMessage[NUM_0] == NUM_3 )
             {
-                i = (num_3 << 4) + (hex_AA & hex_0F);
+                i = (NUM_3 << NUM_4) + (HEX_AA & HEX_0F);
             }
             else
             {}
 
-            CanTp_SingleFrameTx( &msn_error[num_0], i );
+            CanTp_SingleFrameTx( &msn_error[NUM_0], i );
 
             state_control = STATE_IDLE;
             break;
@@ -264,12 +263,12 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
 {
     FDCAN_RxHeaderTypeDef CANRxHeader;
 
-    if(( RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE ) != num_0 )
+    if(( RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE ) != NUM_0 )
     {
         /* Retrieve Rx messages from RX FIFO0 */
         HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, NewMessage );
         
-        flagMessage = num_1;
+        flagMessage = NUM_1;
     }
 }
 
@@ -294,18 +293,18 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
  */
 static void Valid_Time( uint8_t *data )
 {
-    if( data[num_0] == num_1 ) // Time message
+    if( data[NUM_0] == NUM_1 ) // Time message
     {
-        if( ((data[num_1] >= hex_0) && (data[num_1] <= hex_23)) &&
-            ((data[num_2] >= hex_0) && (data[num_2] <= hex_59)) &&
-            ((data[num_3] >= hex_0) && (data[num_3] <= hex_59)) ) 
+        if( ((data[NUM_1] >= HEX_0) && (data[NUM_1] <= HEX_23)) &&
+            ((data[NUM_2] >= HEX_0) && (data[NUM_2] <= HEX_59)) &&
+            ((data[NUM_3] >= HEX_0) && (data[NUM_3] <= HEX_59)) ) 
         {
             state_control = STATE_OK;
 
-            MSGHandler.msg        = data[num_0];
-            MSGHandler.tm.tm_hour = data[num_1];
-            MSGHandler.tm.tm_min  = data[num_2];
-            MSGHandler.tm.tm_sec  = data[num_3];
+            MSGHandler.msg        = data[NUM_0];
+            MSGHandler.tm.tm_hour = data[NUM_1];
+            MSGHandler.tm.tm_min  = data[NUM_2];
+            MSGHandler.tm.tm_sec  = data[NUM_3];
         }
         else
         {
@@ -314,14 +313,14 @@ static void Valid_Time( uint8_t *data )
     }
     else // Alarm message
     {
-        if( ((data[num_1] >= hex_0) && (data[num_1] <= hex_23)) &&
-            ((data[num_2] >= hex_0) && (data[num_2] <= hex_59)) ) 
+        if( ((data[NUM_1] >= HEX_0) && (data[NUM_1] <= HEX_23)) &&
+            ((data[NUM_2] >= HEX_0) && (data[NUM_2] <= HEX_59)) ) 
         {
             state_control = STATE_OK;
 
-            MSGHandler.msg        = data[num_0];
-            MSGHandler.tm.tm_hour = data[num_1];
-            MSGHandler.tm.tm_min  = data[num_2];
+            MSGHandler.msg        = data[NUM_0];
+            MSGHandler.tm.tm_hour = data[NUM_1];
+            MSGHandler.tm.tm_min  = data[NUM_2];
         }
         else
         {
@@ -354,69 +353,69 @@ static void Valid_Time( uint8_t *data )
 static void Valid_Date( uint8_t *data )
 { 
     uint16_t year;
-    year = data[num_3];
-    year = (year << num_8)  + data[num_4];
+    year = data[NUM_3];
+    year = (year << NUM_8)  + data[NUM_4];
 
-    if( ((data[num_1] >= hex_1)   && (data[num_1] <= hex_31)) &&
-        ((data[num_2] >= JANUARY) && (data[num_2] <= DECEMBER)) &&
-        ((year >= hex_1901) && (year <= hex_2099)) )
+    if( ((data[NUM_1] >= HEX_1)   && (data[NUM_1] <= HEX_31)) &&
+        ((data[NUM_2] >= JANUARY) && (data[NUM_2] <= DECEMBER)) &&
+        ((year >= HEX_1901) && (year <= HEX_2099)) )
     {
-        if( (year % num_4) == num_0 ) // Check leap year and february
+        if( (year % NUM_4) == NUM_0 ) // Check leap year and february
         {
-            if( (data[num_2] == FEBRUARY) && (data[num_1] <= hex_29) )
+            if( (data[NUM_2] == FEBRUARY) && (data[NUM_1] <= HEX_29) )
             {
                 state_control = STATE_OK;
 
-                MSGHandler.msg        = data[num_0];
-                MSGHandler.tm.tm_mday = data[num_1];
-                MSGHandler.tm.tm_mon  = data[num_2];
-                MSGHandler.tm.tm_yday = data[num_3];
-                MSGHandler.tm.tm_year = data[num_4];
+                MSGHandler.msg        = data[NUM_0];
+                MSGHandler.tm.tm_mday = data[NUM_1];
+                MSGHandler.tm.tm_mon  = data[NUM_2];
+                MSGHandler.tm.tm_yday = data[NUM_3];
+                MSGHandler.tm.tm_year = data[NUM_4];
             }
             else
             {
                 state_control = STATE_ERROR;
             }
         }
-        else if( (data[num_2] == FEBRUARY) && (data[num_1] <= hex_28) ) // Check for february
+        else if( (data[NUM_2] == FEBRUARY) && (data[NUM_1] <= HEX_28) ) // Check for february
         {
             state_control = STATE_OK;
 
-            MSGHandler.msg        = data[num_0];
-            MSGHandler.tm.tm_mday = data[num_1];
-            MSGHandler.tm.tm_mon  = data[num_2];
-            MSGHandler.tm.tm_yday = data[num_3];
-            MSGHandler.tm.tm_year = data[num_4];
+            MSGHandler.msg        = data[NUM_0];
+            MSGHandler.tm.tm_mday = data[NUM_1];
+            MSGHandler.tm.tm_mon  = data[NUM_2];
+            MSGHandler.tm.tm_yday = data[NUM_3];
+            MSGHandler.tm.tm_year = data[NUM_4];
         }
-        else if( ( (data[num_2] == APRIL) || 
-                   (data[num_2] == JUNE) || 
-                   (data[num_2] == SEPTEMBER) || 
-                   (data[num_2] == NOVEMBER)) && 
-                   (data[num_2] <= hex_30) ) // Check for months with 30 days
+        else if( ( (data[NUM_2] == APRIL) || 
+                   (data[NUM_2] == JUNE) || 
+                   (data[NUM_2] == SEPTEMBER) || 
+                   (data[NUM_2] == NOVEMBER)) && 
+                   (data[NUM_2] <= HEX_30) ) // Check for months with 30 days
         {
             state_control = STATE_OK;
 
-            MSGHandler.msg        = data[num_0];
-            MSGHandler.tm.tm_mday = data[num_1];
-            MSGHandler.tm.tm_mon  = data[num_2];
-            MSGHandler.tm.tm_yday = data[num_3];
-            MSGHandler.tm.tm_year = data[num_4];
+            MSGHandler.msg        = data[NUM_0];
+            MSGHandler.tm.tm_mday = data[NUM_1];
+            MSGHandler.tm.tm_mon  = data[NUM_2];
+            MSGHandler.tm.tm_yday = data[NUM_3];
+            MSGHandler.tm.tm_year = data[NUM_4];
         }
-        else if( (data[num_2] == JANUARY) || 
-                 (data[num_2] == MARCH) || 
-                 (data[num_2] == MAY) || 
-                 (data[num_2] == JULY) || 
-                 (data[num_2] == AUGUST) ||
-                 (data[num_2] == OCTOBER) || 
-                 (data[num_2] == DECEMBER) ) // Otherwise, the month has 31 days
+        else if( (data[NUM_2] == JANUARY) || 
+                 (data[NUM_2] == MARCH) || 
+                 (data[NUM_2] == MAY) || 
+                 (data[NUM_2] == JULY) || 
+                 (data[NUM_2] == AUGUST) ||
+                 (data[NUM_2] == OCTOBER) || 
+                 (data[NUM_2] == DECEMBER) ) // Otherwise, the month has 31 days
         {
             state_control = STATE_OK;
 
-            MSGHandler.msg        = data[num_0];
-            MSGHandler.tm.tm_mday = data[num_1];
-            MSGHandler.tm.tm_mon  = data[num_2];
-            MSGHandler.tm.tm_yday = data[num_3];
-            MSGHandler.tm.tm_year = data[num_4];
+            MSGHandler.msg        = data[NUM_0];
+            MSGHandler.tm.tm_mday = data[NUM_1];
+            MSGHandler.tm.tm_mon  = data[NUM_2];
+            MSGHandler.tm.tm_yday = data[NUM_3];
+            MSGHandler.tm.tm_year = data[NUM_4];
         }
         else
         {
@@ -446,14 +445,14 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
 {
     uint8_t data_length;
 
-    data_length = size >> 4;
+    data_length = size >> NUM_4;
 
-    for( uint8_t i = num_0; i < data_length; i++)
+    for( uint8_t i = NUM_0; i < data_length; i++)
     {
-        data[i + num_1] = data[num_0];
+        data[i + NUM_1] = data[NUM_0];
     }
 
-    data[num_0] = data_length;
+    data[NUM_0] = data_length;
 
     HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, data );
 }
@@ -481,23 +480,23 @@ static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size )
     uint8_t frame_type;
     uint8_t data_length;
 
-    frame_type  = size[num_0] >> num_4;
-    data_length = size[num_0] & hex_0F;
+    frame_type  = size[NUM_0] >> NUM_4;
+    data_length = size[NUM_0] & HEX_0F;
 
-    if( ((frame_type == num_0) && (data_length == num_3)) ||
-        ((frame_type == num_0) && (data_length == num_4)) ||
-        ((frame_type == num_0) && (data_length == num_5)) )
+    if( ((frame_type == NUM_0) && (data_length == NUM_3)) ||
+        ((frame_type == NUM_0) && (data_length == NUM_4)) ||
+        ((frame_type == NUM_0) && (data_length == NUM_5)) )
     {
-        for(uint8_t i = num_0; i < data_length; i++)
+        for(uint8_t i = NUM_0; i < data_length; i++)
         {
             NewMessage[i] = data[i];
         }
 
-        msgRecieve = num_1;
+        msgRecieve = NUM_1;
     }
     else
     {
-        msgRecieve = num_0;
+        msgRecieve = NUM_0;
     }
 
     return msgRecieve;

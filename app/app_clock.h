@@ -27,39 +27,39 @@
 /** 
   * @defgroup Values for RTC initialization
   @{ */
-#define val_AsynchPrediv (uint8_t)127  /*!< Value for AsynchPrediv */
-#define val_SynchPrediv  (uint8_t)255  /*!< Value for SynchPrediv  */
+#define VAL_ASYNCHPREDIV (uint8_t)127  /*!< Value for AsynchPrediv */
+#define VAL_SYNCHPREDIV  (uint8_t)255  /*!< Value for SynchPrediv  */
 /**
   @} */
 
 /** 
   * @defgroup Valies for default data
   @{ */
-#define def_Hours         (uint8_t)0x23  /*!< Default hours         */
-#define def_Minutes       (uint8_t)0x59  /*!< Default minutes       */
-#define def_Seconds       (uint8_t)0x50  /*!< Default seconds       */
-#define def_SubSeconds    (uint8_t)0x00  /*!< Default subseconds    */
-#define def_Date          (uint8_t)0x31  /*!< Default date          */
-#define def_YearLSB       (uint8_t)0x23  /*!< Default year MSB      */
-#define def_YearMSB       (uint8_t)20    /*!< Default year LSB      */
-#define def_Alarm_Hour    (uint8_t)0x20  /*!< Default alarm hour    */
-#define def_Alarm_Minutes (uint8_t)0x00  /*!< Default alarm minutes */
-#define def_Alarm_Seconds (uint8_t)0x00  /*!< Default alarm seconds */
+#define DEF_HOURS         (uint8_t)0x23  /*!< Default hours         */
+#define DEF_MINUTES       (uint8_t)0x59  /*!< Default minutes       */
+#define DEF_SECONDS       (uint8_t)0x50  /*!< Default seconds       */
+#define DEF_SUBSECONDS    (uint8_t)0x00  /*!< Default subseconds    */
+#define DEF_DATE          (uint8_t)0x31  /*!< Default date          */
+#define DEF_YEARLSB       (uint8_t)0x23  /*!< Default year MSB      */
+#define DEF_YEARMSB       (uint8_t)20    /*!< Default year LSB      */
+#define DEF_ALARM_HOURS   (uint8_t)0x20  /*!< Default alarm hour    */
+#define DEF_ALARM_MINUTES (uint8_t)0x00  /*!< Default alarm minutes */
+#define DEF_ALARM_SECONDS (uint8_t)0x00  /*!< Default alarm seconds */
 /**
   @} */
 
 /** 
   * @defgroup Amount of miliseconds to display
   @{ */
-#define one_second (uint8_t)1000  /*!< Define for one second */
+#define ONE_SECOND (uint8_t)1000  /*!< Define for one second */
 /**
   @} */
 
 /** 
   * @defgroup Defines for numbers
   @{ */
-#define num_0 (uint8_t)0  /*!< Number 0 */
-#define num_1 (uint8_t)1  /*!< Number 1 */
+#define NUM_0 (uint8_t)0  /*!< Number 0 */
+#define NUM_1 (uint8_t)1  /*!< Number 1 */
 /**
   @} */
 

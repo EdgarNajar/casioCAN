@@ -58,8 +58,8 @@ void Clock_Init( void )
     /* Configuration RTC */
     hrtc.Instance             = RTC;
     hrtc.Init.HourFormat      = RTC_HOURFORMAT_24;
-    hrtc.Init.AsynchPrediv    = val_AsynchPrediv;
-    hrtc.Init.SynchPrediv     = val_SynchPrediv;
+    hrtc.Init.AsynchPrediv    = VAL_ASYNCHPREDIV;
+    hrtc.Init.SynchPrediv     = VAL_SYNCHPREDIV;
     hrtc.Init.OutPut          = RTC_OUTPUT_DISABLE;
     /* Initilize the RTC with 24 hour format and no output signal enble */
     HAL_RTC_Init( &hrtc );
@@ -67,10 +67,10 @@ void Clock_Init( void )
     tick_display = HAL_GetTick();
 
     /* Setting default time at 23:59:50 in BCD format */
-    sTime.Hours   = def_Hours;
-    sTime.Minutes = def_Minutes;
-    sTime.Seconds = def_Seconds;
-    sTime.SubSeconds = def_SubSeconds;
+    sTime.Hours   = DEF_HOURS;
+    sTime.Minutes = DEF_MINUTES;
+    sTime.Seconds = DEF_SECONDS;
+    sTime.SubSeconds = DEF_SUBSECONDS;
     sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
     sTime.StoreOperation = RTC_STOREOPERATION_RESET;
     HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
@@ -78,14 +78,14 @@ void Clock_Init( void )
     /* Setting default date at Monday January 31, 2023 in BCD format */
     sDate.WeekDay = RTC_WEEKDAY_TUESDAY;
     sDate.Month = RTC_MONTH_JANUARY;
-    sDate.Date = def_Date;
-    sDate.Year = def_YearLSB;
-    MSGHandler.tm.tm_yday = def_YearMSB;
+    sDate.Date = DEF_DATE;
+    sDate.Year = DEF_YEARLSB;
+    MSGHandler.tm.tm_yday = DEF_YEARMSB;
     HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
 
-    sAlarm.AlarmTime.Hours   = def_Alarm_Hour;
-    sAlarm.AlarmTime.Minutes = def_Alarm_Minutes;
-    sAlarm.AlarmTime.Seconds = def_Alarm_Seconds;
+    sAlarm.AlarmTime.Hours   = DEF_ALARM_HOURS;
+    sAlarm.AlarmTime.Minutes = DEF_ALARM_MINUTES;
+    sAlarm.AlarmTime.Seconds = DEF_ALARM_SECONDS;
     sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
     sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
     sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
@@ -125,7 +125,7 @@ void Clock_Task( void )
             {
                 changes = CHANGE_ALARM;
             }
-            else if( (HAL_GetTick() - tick_display) >= one_second )
+            else if( (HAL_GetTick() - tick_display) >= ONE_SECOND )
             {
                 tick_display = HAL_GetTick();
                 changes = DISPLAY;
