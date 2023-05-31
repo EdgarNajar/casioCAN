@@ -67,6 +67,22 @@ typedef enum
     STATE_ERROR      /*!< Message recieve error */
 }APP_States;
 
+/** 
+  * @defgroup Heartbeat
+  @{ */
+#define TOGGLE_HEART (uint32_t)220  /*!< Time to toggle the heart(GPIOA PIN5) */
+/**
+  @} */
+
+/** 
+  * @defgroup Parameters for window watchdog
+  @{ */
+#define VAL_WINDOW   (uint32_t)108  /*!< Value to the window of the window watchdog  */
+#define VAL_COUNTER  (uint32_t)115  /*!< Value to the counter of the window watchdog */
+#define REFRESH_WWDG (uint32_t)220  /*!< Time to refresh the window watchdog         */
+/**
+  @} */
+
 /**
  * @brief  Structure type variable for time data
  */
