@@ -13,6 +13,8 @@
 
     #include "stm32g0xx.h"
     #include <stdint.h>
+    /* cppcheck-suppress misra-c2012-21.6 ; Standar library needed for use of semi hosting */
+    #include <stdio.h>
 
 /**
   * @brief   Structure for time data
@@ -42,7 +44,9 @@ typedef struct _APP_MsgTypeDef
 /**
   * @brief   Enum for kind af message
   */
-typedef enum{
+typedef enum
+/* cppcheck-suppress misra-c2012-2.4 ; To supress declaration of variable type enum */
+{
     SERIAL_MSG_NONE = 0u, /*!< No serial message    */
     SERIAL_MSG_TIME,      /*!< Time serial message  */
     SERIAL_MSG_DATE,      /*!< Date serial message  */
@@ -52,7 +56,8 @@ typedef enum{
 /**
   * @brief   Enum for states control
   */
-typedef enum{
+typedef enum
+{
     STATE_IDLE = 1u, /*!< Wait for a message    */
     STATE_MESSAGE,   /*!< Message recieve       */
     STATE_TIME,      /*!< Time message          */
@@ -76,6 +81,23 @@ extern FDCAN_HandleTypeDef CANHandler;
  * @brief  Is used to move in state machine
  */
 extern APP_States state_control;
+
+/**
+ * @brief  To determine the type of data that changed
+ */
+extern uint8_t changes;
+
+/**
+ * @brief  To store milisecods for display
+ */
+extern uint32_t tick_display;
+
+/**
+ * @brief  To set the default date and time
+ */
+extern uint8_t default_data;
+
+extern void initialise_monitor_handles(void);
 
 #endif
 

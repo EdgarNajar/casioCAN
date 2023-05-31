@@ -35,49 +35,49 @@
 /** 
   * @defgroup Numbers, defines for numbers in decimal
   @{ */
-#define num_0 (uint8_t)0  /*!< Number 0 */
-#define num_1 (uint8_t)1  /*!< Number 1 */
-#define num_2 (uint8_t)2  /*!< Number 2 */
-#define num_3 (uint8_t)3  /*!< Number 3 */
-#define num_4 (uint8_t)4  /*!< Number 4 */
-#define num_5 (uint8_t)5  /*!< Number 5 */
-#define num_8 (uint8_t)8  /*!< Number 8 */
+#define NUM_0 (uint8_t)0  /*!< Number 0 */
+#define NUM_1 (uint8_t)1  /*!< Number 1 */
+#define NUM_2 (uint8_t)2  /*!< Number 2 */
+#define NUM_3 (uint8_t)3  /*!< Number 3 */
+#define NUM_4 (uint8_t)4  /*!< Number 4 */
+#define NUM_5 (uint8_t)5  /*!< Number 5 */
+#define NUM_8 (uint8_t)8  /*!< Number 8 */
 /**
   @} */
 
 /** 
   * @defgroup Numbers, defines for numbers in hexa
   @{ */
-#define hex_0     (uint8_t)0x00     /*!< Number 0 in hexa    */
-#define hex_1     (uint8_t)0x01     /*!< Number 1 in hexa    */
-#define hex_23    (uint8_t)0x23     /*!< Number 23 in hexa   */
-#define hex_28    (uint8_t)0x28     /*!< Number 28 in hexa   */
-#define hex_29    (uint8_t)0x29     /*!< Number 29 in hexa   */
-#define hex_30    (uint8_t)0x30     /*!< Number 30 in hexa   */
-#define hex_31    (uint8_t)0x31     /*!< Number 31 in hexa   */
-#define hex_55    (uint8_t)0x55     /*!< Number 55 in hexa   */
-#define hex_59    (uint8_t)0x59     /*!< Number 59 in hexa   */
-#define hex_AA    (uint8_t)0xAA     /*!< Number AA in hexa   */
-#define hex_0F    (uint8_t)0x0F     /*!< Number 0F in hexa   */
-#define hex_1901  (uint32_t)0x1901  /*!< Number 1901 in hexa */
-#define hex_2099  (uint32_t)0x2099  /*!< Number 2099 in hexa */
+#define HEX_0     (uint8_t)0x00     /*!< Number 0 in hexa    */
+#define HEX_1     (uint8_t)0x01     /*!< Number 1 in hexa    */
+#define HEX_23    (uint8_t)0x23     /*!< Number 23 in hexa   */
+#define HEX_28    (uint8_t)0x28     /*!< Number 28 in hexa   */
+#define HEX_29    (uint8_t)0x29     /*!< Number 29 in hexa   */
+#define HEX_30    (uint8_t)0x30     /*!< Number 30 in hexa   */
+#define HEX_31    (uint8_t)0x31     /*!< Number 31 in hexa   */
+#define HEX_55    (uint8_t)0x55     /*!< Number 55 in hexa   */
+#define HEX_59    (uint8_t)0x59     /*!< Number 59 in hexa   */
+#define HEX_AA    (uint8_t)0xAA     /*!< Number AA in hexa   */
+#define HEX_0F    (uint8_t)0x0F     /*!< Number 0F in hexa   */
+#define HEX_1901  (uint32_t)0x1901  /*!< Number 1901 in hexa */
+#define HEX_2099  (uint32_t)0x2099  /*!< Number 2099 in hexa */
 /**
   @} */
 
 /** 
   * @defgroup Defines for CAN configuration
   @{ */
-#define val_ExtFiltersNbr        0      /*!< Value for ExtFiltersNbr        */
-#define val_StdFiltersNbr        1      /*!< Value for StdFiltersNbr        */
-#define val_NominalPrescaler     10     /*!< Value for NominalPrescaler     */
-#define val_NominalSyncJumpWidth 1      /*!< Value for NominalSyncJumpWidth */
-#define val_NominalTimeSeg1      11     /*!< Value for NominalTimeSeg1      */
-#define val_NominalTimeSeg2      4      /*!< Value for NominalTimeSeg2      */
-#define val_Identifier           0x122  /*!< Value for Identifier           */
-#define val_FilterIndex          0      /*!< Value for FilterIndex          */
-#define val_FilterID1            0x111  /*!< Value for FilterID1            */
-#define val_FilterID2            0x7FF  /*!< Value for BufferIndexes        */
-#define val_BufferIndexes        0      /*!< Value for BufferIndexes        */
+#define VAL_EXTFILTERSNBR        (uint32_t)0      /*!< Value for ExtFiltersNbr        */
+#define VAL_STDFILTERSNDR        (uint32_t)1      /*!< Value for StdFiltersNbr        */
+#define VAL_NOMINALPRESCALER     (uint32_t)10     /*!< Value for NominalPrescaler     */
+#define VAL_NOMINALSYNCJUMPWIDTH (uint32_t)1      /*!< Value for NominalSyncJumpWidth */
+#define VAL_NOMINALTIMESEG1      (uint32_t)11     /*!< Value for NominalTimeSeg1      */
+#define VAL_NOMINALTIMESEG2      (uint32_t)4      /*!< Value for NominalTimeSeg2      */
+#define VAL_IDENTIFIER           (uint32_t)0x122  /*!< Value for Identifier           */
+#define VAL_FILTERINDEX          (uint32_t)0      /*!< Value for FilterIndex          */
+#define VAL_FILTERID1            (uint32_t)0x111  /*!< Value for FilterID1            */
+#define VAL_FILTERID2            (uint32_t)0x7FF  /*!< Value for FilterID2            */
+#define VAL_BUFFERINDEXES        (uint32_t)0      /*!< Value for BufferIndexes        */
 /**
   @} */
 

@@ -10,6 +10,7 @@
  */
 #include "app_bsp.h"
 #include "app_serial.h"
+#include "app_clock.h"
 
 /**
  * @brief   **Implementation of the main program**
@@ -23,9 +24,11 @@ int main( void )
 {
     HAL_Init();
     Serial_Init();
+    Clock_Init();
 
     for( ;; )
     {
         Serial_Task();
+        Clock_Task();
     }
 }
