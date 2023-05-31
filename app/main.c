@@ -2,7 +2,7 @@
  * @file    main.c
  * @brief   **Main file with the calls to all functions needed**
  *
- * This file contains the implementation of the functions needed to run a clock
+ * This file contains the implementation of the functions nedded to run a clock
  * using CAN protocol 
  *
  * @note    None
