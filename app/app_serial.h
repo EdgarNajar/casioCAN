@@ -69,7 +69,7 @@
   @{ */
 #define VAL_EXTFILTERSNBR        (uint32_t)0      /*!< Value for ExtFiltersNbr        */
 #define VAL_STDFILTERSNDR        (uint32_t)1      /*!< Value for StdFiltersNbr        */
-#define VAL_NOMINALPRESCALER     (uint32_t)10     /*!< Value for NominalPrescaler     */
+#define VAL_NOMINALPRESCALER     (uint32_t)20     /*!< Value for NominalPrescaler     */
 #define VAL_NOMINALSYNCJUMPWIDTH (uint32_t)1      /*!< Value for NominalSyncJumpWidth */
 #define VAL_NOMINALTIMESEG1      (uint32_t)11     /*!< Value for NominalTimeSeg1      */
 #define VAL_NOMINALTIMESEG2      (uint32_t)4      /*!< Value for NominalTimeSeg2      */

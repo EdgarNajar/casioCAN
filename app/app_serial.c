@@ -64,7 +64,7 @@ APP_States state_control = STATE_IDLE;
  * @note    Declaration of the options to configure the FDCAN1 module to transmit to the CAN bus at 100Kbps
  *          and sample point of 75%, the frequency with which the CAN module is powered is
  *          fCAN = fHSI / CANHandler.Init.ClockDivider / CANHandler.Init.NominalPrescaler
- *          fCAN = 16MHz / 1 / 10 = 1.6MHz
+ *          fCAN = 32MHz / 1 / 20 = 1.6MHz
  *          The number of time quantas required is
  *          Ntq = fCAN / CANbaudrate
  *          Ntq = 1.6MHz / 100Kbps = 16
