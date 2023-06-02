@@ -30,7 +30,7 @@
  *
  * @note None
  */
-uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
+void HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
 {
     HEL_LCD_MspInit( hlcd );
 
@@ -42,21 +42,21 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
     /* Reset */
     HAL_GPIO_WritePin( hlcd->RstPort, hlcd->RstPin, SET );
     HAL_Delay(20);
-    HEL_LCD_Command( hlcd, wakeup );
+    HEL_LCD_Command( hlcd, WAKEUP );
     HAL_Delay(2);
-    HEL_LCD_Command( hlcd, wakeup );
-    HEL_LCD_Command( hlcd, wakeup );
-    HEL_LCD_Command( hlcd, function_set );
-    HEL_LCD_Command( hlcd, internal_osc_frequency );
-    HEL_LCD_Command( hlcd, power_control );
-    HEL_LCD_Command( hlcd, follower_control );
+    HEL_LCD_Command( hlcd, WAKEUP );
+    HEL_LCD_Command( hlcd, WAKEUP );
+    HEL_LCD_Command( hlcd, FUNCTION_SET );
+    HEL_LCD_Command( hlcd, INTERNAL_OSC_FRECUENCY );
+    HEL_LCD_Command( hlcd, POWER_CONTROL );
+    HEL_LCD_Command( hlcd, FOLLOWER_CONTROL );
     HAL_Delay(200);
-    HEL_LCD_Command( hlcd, contrast_cmd );
-    HEL_LCD_Command( hlcd, display_on );
-    HEL_LCD_Command( hlcd, entry_mode );
-    HEL_LCD_Command( hlcd, clear_screen );
+    HEL_LCD_Command( hlcd, CONTRAST_CMD );
+    HEL_LCD_Command( hlcd, DISPLAY_ON );
+    HEL_LCD_Command( hlcd, ENTRY_MODE );
+    HEL_LCD_Command( hlcd, CLEAR_SCREEN );
     HAL_Delay(10);
-    return 1;
+    
 }
 
 /**
@@ -69,6 +69,7 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
  *
  * @note None
  */
+/* cppcheck-suppress misra-c2012-8.7 ; Function to be used in future applications */
 __weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
 {
     UNUSED(hlcd);
@@ -91,7 +92,7 @@ __weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
  *
  * @note None
  */
-uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
+void HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
 {
     /* Command mode */
     HAL_GPIO_WritePin( hlcd->RsPort, hlcd->RsPin, RESET );
@@ -102,7 +103,6 @@ uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
     /* chip select off */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
     // HAL_Delay(30);
-    return 1;
 }
 
 /**
@@ -122,7 +122,8 @@ uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
  *
  * @note None
  */
-uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
+/* cppcheck-suppress misra-c2012-8.7 ; Function to be used in future applications */
+void HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
 {
     /* Data mode */
     HAL_GPIO_WritePin( hlcd->RsPort, hlcd->RsPin, SET );
@@ -133,7 +134,6 @@ uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
     /* Chip select off */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
     // HAL_Delay(30);
-    return 1;
 }
 
 /**
@@ -152,7 +152,7 @@ uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
  *
  * @note None
  */
-uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
+void HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
 {
     uint8_t i = 0;
 
@@ -162,7 +162,6 @@ uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
         i++;
     }
 
-    return 1;
 }
 
 /**
@@ -181,7 +180,7 @@ uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
  *
  * @note None
  */
-uint8_t HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
+void HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
 {
     uint8_t cursor[2] = {0x80, 0xC0}; 
     uint8_t address;
@@ -191,7 +190,6 @@ uint8_t HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
     /* Second row */
     HEL_LCD_Command( hlcd, address );
 
-    return 1;
 }
 
 /**
@@ -236,10 +234,9 @@ void HEL_LCD_Backlight( LCD_HandleTypeDef *hlcd, uint8_t state )
  *
  * @note None
  */
-uint8_t HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast )
+void HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast )
 {
     /* Constrast */
     HEL_LCD_Command( hlcd, (contrast | 0x70u ) );
 
-    return 1;
 }

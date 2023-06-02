@@ -36,15 +36,15 @@ typedef struct
 /** 
   * @defgroup LCD instruction code
   @{ */
-#define wakeup                 0x30  /*!< wakeup code                 */
-#define function_set           0x39  /*!< Function set code           */
-#define internal_osc_frequency 0x14  /*!< Internal osc frequency code */
-#define power_control          0x56  /*!< Power control code          */
-#define follower_control       0x6D  /*!< Follower control code       */
-#define contrast_cmd           0x70  /*!< Contrast code               */
-#define display_on             0x0C  /*!< Display on code             */
-#define entry_mode             0x06  /*!< Entry mode code             */
-#define clear_screen           0x01  /*!< Clear screen code           */
+#define WAKEUP                 (uint8_t)0x30  /*!< wakeup code                 */
+#define FUNCTION_SET           (uint8_t)0x39  /*!< Function set code           */
+#define INTERNAL_OSC_FRECUENCY (uint8_t)0x14  /*!< Internal osc frequency code */
+#define POWER_CONTROL          (uint8_t)0x56  /*!< Power control code          */
+#define FOLLOWER_CONTROL       (uint8_t)0x6D  /*!< Follower control code       */
+#define CONTRAST_CMD           (uint8_t)0x70  /*!< Contrast code               */
+#define DISPLAY_ON             (uint8_t)0x0C  /*!< Display on code             */
+#define ENTRY_MODE             (uint8_t)0x06  /*!< Entry mode code             */
+#define CLEAR_SCREEN           (uint8_t)0x01  /*!< Clear screen code           */
 /**
   @} */
 
@@ -57,13 +57,13 @@ typedef struct
 /**
   @} */
 
-extern uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd );
-void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd );
-extern uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd );
-extern uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data );
-extern uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str );
-extern uint8_t HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col );
+extern void HEL_LCD_Init( LCD_HandleTypeDef *hlcd );
+extern __weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd );
+extern void HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd );
+extern void HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data );
+extern void HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str );
+extern void HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col );
 extern void HEL_LCD_Backlight( LCD_HandleTypeDef *hlcd, uint8_t state );
-extern uint8_t HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast );
+extern void HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast );
      
 #endif
