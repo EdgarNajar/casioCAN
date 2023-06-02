@@ -70,7 +70,7 @@ typedef enum
 /** 
   * @defgroup Heartbeat
   @{ */
-#define TOGGLE_HEART (uint32_t)220  /*!< Time to toggle the heart(GPIOA PIN5) */
+#define TOGGLE_HEART (uint32_t)208  /*!< Time to toggle the heart(GPIOA PIN5) */
 /**
   @} */
 

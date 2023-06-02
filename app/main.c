@@ -141,7 +141,8 @@ void dog_init( void )
 /**
  * @brief   **Function to refresh the parameters of the window watchdog**
  *
- * This function refresh the window watchdog every 220 miliseconds
+ * This function refresh the window watchdog, 
+ * the milliseconds are established in REFRESH_WWDG
  *
  * @param   tick_dog [in/out] Store the amount of millisecons transcurred
  *
