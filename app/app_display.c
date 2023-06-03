@@ -1,79 +1,57 @@
 /**
  * @file    app_display.c
- * @brief   **file to control the LCD**
+ * @brief   **File to control the LCD**
  *
- * this file will control the LCD and the way the information is displayed in the LCD
+ * This file will control the LCD and the way the information is displayed in the LCD
  *
- * @note    none
+ * @note    None
  */
-
 #include "app_bsp.h"
 #include "app_serial.h"
 #include "app_display.h"
 #include "hel_lcd.h"
 
-#define row_1 0
-#define row_2 1
-
-/** 
-  * @defgroup state of the backlight of the LCD
-  @{ */
-#define LCD_ON     1  /*!< turn on backlight */
-#define LCD_OFF    2  /*!< turn off backlight */
-#define LCD_TOGGLE 3  /*!< toggle backlight */
 /**
-  @} */
-
-/**
- * @brief  struct type variable to handle the LCD
+ * @brief  Struct type variable to handle the LCD
  */
-
 static LCD_HandleTypeDef hlcd;
 
 /**
- * @brief  struct type variable to clock messages
+ * @brief  Struct type variable to clock messages
  */
-
 APP_MsgTypeDef ClockMsg;
 
 /**
- * @brief  struct type variable to handle the SPI
+ * @brief  Struct type variable to handle the SPI
  */
-
 SPI_HandleTypeDef SpiHandle;
 
 /**
- * @brief  variable to control the state machine of display
+ * @brief  Variable to control the state machine of display
  */
-
 uint8_t display_lcd = DISPLAY_TIME;
 
 /**
- * @brief  variable to store the string of time to the LCD
+ * @brief  Variable to store the string of time to the LCD
  */
-
-char buffer_time[16];
+char buffer_time[NUM_16];
 
 /**
- * @brief  variable to store the string of date to the LCD
+ * @brief  Variable to store the string of date to the LCD
  */
-
-char buffer_date[16];
+char buffer_date[NUM_16];
 
 /**
- * @brief   **initialization of the LCD**
+ * @brief   **Initialization of the LCD**
  *
- * this function initialize the ports to start working with the LCD and
+ * This function initialize the ports to start working with the LCD and
  * configure the spi in master mode, full-duplex comunication, clock polarity high
  * and phase in falling edge
  *
- * @param   hlcd [in/out] structure type function to handle the LCD
+ * @param   hlcd [in/out] Structure type function to handle the LCD
  *
- * @retval  none
- *
- * @note none
+ * @note None
  */
-
 void Display_Init( void )
 {
     /* Configuring the spi in master mode, full-duplex comunication, clock polarity high
@@ -89,9 +67,6 @@ void Display_Init( void )
     SpiHandle.Init.NSS               = SPI_NSS_SOFT;
     SpiHandle.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLED;
     SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLED;
-    /* aplicamos la configuracion al spi 1 pero antes nos aseguramos 
-    que el esclavo este deshabilitado pin C8 en alto 
-    HAL_GPIO_WritePin( GPIOD, GPIO_PIN_3, SET );*/
     HAL_SPI_Init( &SpiHandle );
 
     hlcd.RstPort    = GPIOD;
@@ -109,16 +84,13 @@ void Display_Init( void )
 }
 
 /**
- * @brief   **display message processing**
+ * @brief   **Display message processing**
  *
- * implementation of the state machine in charge of messages processing 
+ * Implementation of the state machine in charge of messages processing 
  * from the clock task and display the time and date
  *
- * @retval  none
- *
- * @note none
+ * @note  None
  */
-
 void Display_Task( void )
 {    
     switch( display_lcd )
@@ -127,16 +99,16 @@ void Display_Task( void )
             display_lcd = DISPLAY_DATE;
             
             Display_TimeString( &ClockMsg );
-            HEL_LCD_SetCursor( &hlcd, row_2, 0x03 );
-            HEL_LCD_String( &hlcd, &buffer_time[0] );
+            HEL_LCD_SetCursor( &hlcd, ROW_2, HEX_3 );
+            HEL_LCD_String( &hlcd, &buffer_time[NUM_0] );
             break;
 
         case DISPLAY_DATE:
             display_lcd = DISPLAY_TIME;
 
             Display_DateString( &ClockMsg );
-            HEL_LCD_SetCursor( &hlcd, row_1, 0x01 );
-            HEL_LCD_String( &hlcd, &buffer_date[0] );
+            HEL_LCD_SetCursor( &hlcd, ROW_1, HEX_1 );
+            HEL_LCD_String( &hlcd, &buffer_date[NUM_0] );
             break;
 
         default :
@@ -145,67 +117,61 @@ void Display_Task( void )
 }
 
 /**
- * @brief   **display time**
+ * @brief   **Display time**
  *
- * to make the string of time to be send to the LCD
+ * To make the string of time to be send to the LCD
  *
- * @param   tm [in] structure type variable with the time to display
- * @param   buffer_time [out] variable to store the string of time to the LCD
+ * @param   tm          [in]  Structure type variable with the time to display
+ * @param   buffer_time [out] Variable to store the string of time to the LCD
  * 
- * @retval  none
- *
- * @note none
+ * @note None
  */
-
 static void Display_TimeString( APP_MsgTypeDef *tm )
 {
-    buffer_time[0] = (tm->tm.tm_hour / 10) + 48;
-    buffer_time[1] = (tm->tm.tm_hour % 10) + 48;
-    buffer_time[2] = ':';
-    buffer_time[3] = (tm->tm.tm_min / 10) + 48;
-    buffer_time[4] = (tm->tm.tm_min % 10) + 48;
-    buffer_time[5] = ':';
-    buffer_time[6] = (tm->tm.tm_sec / 10) + 48;
-    buffer_time[7] = (tm->tm.tm_sec % 10) + 48;
+    buffer_time[NUM_0] = (tm->tm.tm_hour / NUM_10) + NUM_48;
+    buffer_time[NUM_1] = (tm->tm.tm_hour % NUM_10) + NUM_48;
+    buffer_time[NUM_2] = ':';
+    buffer_time[NUM_3] = (tm->tm.tm_min / NUM_10) + NUM_48;
+    buffer_time[NUM_4] = (tm->tm.tm_min % NUM_10) + NUM_48;
+    buffer_time[NUM_5] = ':';
+    buffer_time[NUM_6] = (tm->tm.tm_sec / NUM_10) + NUM_48;
+    buffer_time[NUM_7] = (tm->tm.tm_sec % NUM_10) + NUM_48;
 }
 
 /**
- * @brief   **display date**
+ * @brief   **Display date**
  *
- * to make the string of date to be send to the LCD
+ * To make the string of date to be send to the LCD
  *
- * @param   tm [in] structure type variable with the time to display
- * @param   buffer_date [out] variable to store the string of date to the LCD
+ * @param   tm          [in]  Structure type variable with the time to display
+ * @param   buffer_date [out] Variable to store the string of date to the LCD
  * 
- * @retval  none
- *
- * @note none
+ * @note  None
  */
-
 static void Display_DateString( APP_MsgTypeDef *tm )
 {
-    char months[12][3] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", 
+    char months[NUM_12][NUM_3] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", 
                            "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
-    char days_w[7][2] = { "MO", "TU", "WE", "TH", "FR", "SA", "SU" };
+    char days_w[NUM_7][NUM_2] = { "MO", "TU", "WE", "TH", "FR", "SA", "SU" };
     
-    for(char x = 0; x < 3u; x++)
+    for(char x = NUM_0; x < NUM_3; x++)
     {
         buffer_date[x] = months[(tm->tm.tm_mon)-1][x];
     }
 
-    buffer_date[3]  = ',';
-    buffer_date[4]  = (tm->tm.tm_mday / 10) + 48;
-    buffer_date[5]  = (tm->tm.tm_mday % 10) + 48;
-    buffer_date[6]  = ' ';
-    buffer_date[7]  = (tm->tm.tm_yday / 0x10) + 48;
-    buffer_date[8]  = (tm->tm.tm_yday % 0x10) + 48;
-    buffer_date[9]  = (tm->tm.tm_year / 10) + 48;
-    buffer_date[10] = (tm->tm.tm_year % 10) + 48;
-    buffer_date[11] = ' ';
+    buffer_date[NUM_3]  = ',';
+    buffer_date[NUM_4]  = (tm->tm.tm_mday / NUM_10) + NUM_48;
+    buffer_date[NUM_5]  = (tm->tm.tm_mday % NUM_10) + NUM_48;
+    buffer_date[NUM_6]  = ' ';
+    buffer_date[NUM_7]  = (tm->tm.tm_yday / HEX_10) + NUM_48;
+    buffer_date[NUM_8]  = (tm->tm.tm_yday % HEX_10) + NUM_48;
+    buffer_date[NUM_9]  = (tm->tm.tm_year / NUM_10) + NUM_48;
+    buffer_date[NUM_10] = (tm->tm.tm_year % NUM_10) + NUM_48;
+    buffer_date[NUM_11] = ' ';
 
-    for(char x = 0; x < 2; x++)
+    for(char x = NUM_0; x < NUM_2; x++)
     {
-        buffer_date[x+12] = days_w[(tm->tm.tm_wday)-1][x];
+        buffer_date[x+NUM_12] = days_w[(tm->tm.tm_wday)-NUM_1][x];
     }
 }
