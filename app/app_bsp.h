@@ -70,7 +70,7 @@ typedef enum
 /** 
   * @defgroup Heartbeat
   @{ */
-#define TOGGLE_HEART (uint32_t)208  /*!< Time to toggle the heart(GPIOA PIN5) */
+#define TOGGLE_HEART (uint32_t)300  /*!< Time to toggle the heart(GPIOA PIN5) */
 /**
   @} */
 
@@ -79,7 +79,7 @@ typedef enum
   @{ */
 #define VAL_WINDOW   (uint32_t)108  /*!< Value to the window of the window watchdog  */
 #define VAL_COUNTER  (uint32_t)115  /*!< Value to the counter of the window watchdog */
-#define REFRESH_WWDG (uint32_t)220  /*!< Time to refresh the window watchdog         */
+#define REFRESH_WWDG (uint32_t)195  /*!< Time to refresh the window watchdog         */
 /**
   @} */
 
