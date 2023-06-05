@@ -119,9 +119,9 @@ void heart_beat( void )
  *          tPCLK: APB clock period measured in ms
  *          4096: value corresponding to internal divider
  *          
- *          counter = (1/32000000)(4096)(128)(127-115) = 196ms
+ *          counter = (1/32000000)(4096)(128)(127-115) = 196ms 851
  *                                                
- *          window  = (1/32000000)(4096)(128)(127-108) = 311ms
+ *          window  = (1/32000000)(4096)(128)(127-108) = 311ms 114
  */
 void dog_init( void )
 {
@@ -141,7 +141,8 @@ void dog_init( void )
 /**
  * @brief   **Function to refresh the parameters of the window watchdog**
  *
- * This function refresh the window watchdog every 220 miliseconds
+ * This function refresh the window watchdog, 
+ * the milliseconds are established in REFRESH_WWDG
  *
  * @param   tick_dog [in/out] Store the amount of millisecons transcurred
  *
