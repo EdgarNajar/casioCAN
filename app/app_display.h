@@ -9,11 +9,21 @@
 #ifndef APP_DISPLAY_
 #define APP_DISPLAY_
 
+#include "app_bsp.h"
+
 /** 
   * @defgroup Rows of the LCD
   @{ */
-#define ROW_1 (uint8_t)0  /*!< First row  */
-#define ROW_2 (uint8_t)1  /*!< Second row */
+#define ROW_ONE (uint8_t)0  /*!< First row  */
+#define ROW_TWO (uint8_t)1  /*!< Second row */
+/**
+  @} */
+
+/** 
+  * @defgroup Columns of the LCD
+  @{ */
+#define COL_1  (uint8_t)0x1   /*!< Column 1 */
+#define COL_3  (uint8_t)0x3   /*!< Column 3 */
 /**
   @} */
 
@@ -26,16 +36,11 @@
 /**
   @} */
 
-/**
- * @brief  Struct type variable to clock messages
- */
-extern APP_MsgTypeDef ClockMsg;
-
 /** 
   * @defgroup States for display data
   @{ */
-#define DISPLAY_TIME (uint8_t)3  /*!< States for display time */
-#define DISPLAY_DATE (uint8_t)4  /*!< States for display date */
+#define DISPLAY_TIME (uint8_t)1  /*!< States for display time */
+#define DISPLAY_DATE (uint8_t)2  /*!< States for display date */
 /**
   @} */
 
@@ -63,39 +68,11 @@ extern APP_MsgTypeDef ClockMsg;
 /** 
   * @defgroup Numbers, defines for numbers in hexa
   @{ */
-#define HEX_1  (uint8_t)0x1   /*!< Number 1 in hexa    */
-#define HEX_3  (uint8_t)0x3   /*!< Number 3 in hexa    */
 #define HEX_10 (uint8_t)0x10  /*!< Number 10 in hexa   */
 /**
   @} */
 
 void Display_Init( void );
 void Display_Task( void );
-
-static void Display_TimeString( APP_MsgTypeDef *tm );
-static void Display_DateString( APP_MsgTypeDef *tm );
-// /
-//  * @brief   Asssemble the time string**
-//  *
-//  * Make the string to display in the lower row of the LCD compose of the time with the
-//  * following format "hh:mm:ss"
-//  *
-//  * @param   buffer array where the string will be stored
-//  * @param   tm structure with the time to display
-//  /
-// static void Display_TimeString( charbuffer, APP_TmTypeDef *tm )
-// /
-//  * @brief   Asssemble the date string**
-
-// /
-//  * @brief   Asssemble the date string**
-//  *
-//  * Make the string to display in the upper row of the LCD compose of the date and the day of the week
-//  * in the followin format "mmm,dd yyyy dw"
-//  *
-//  * @param   buffer array where the string will be stored
-//  * @param   tm structure with the date to display
-//  /
-// static void Display_DateString( charbuffer, APP_TmTypeDef *tm )
 
 #endif

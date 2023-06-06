@@ -72,7 +72,8 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
  *
  * @note None
  */
-/* cppcheck-suppress misra-c2012-8.7 ; Function to be used in future applications */
+/* cppcheck-suppress misra-c2012-8.6 ; function defined in hel_lcd.h file */
+/* cppcheck-suppress misra-c2012-8.7 ; function defined in hel_lcd.h file */
 __weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
 {
     UNUSED(hlcd);
