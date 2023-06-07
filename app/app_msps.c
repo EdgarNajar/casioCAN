@@ -9,7 +9,7 @@
  * @note    None
  */
 #include "app_bsp.h"
-
+#include "hel_lcd.h"
 /**
  * @brief   **CPU's microcontrollers speed**
  *

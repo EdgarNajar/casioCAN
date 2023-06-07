@@ -107,27 +107,6 @@ extern uint8_t changes;
 extern uint32_t tick_display;
 
 /**
-  * @brief   Structure for LCD control
-  */
-typedef struct
-{
-    SPI_HandleTypeDef   *SpiHandler;    /*!< SPI handler address of the spi to use with the LCD */
-    GPIO_TypeDef        *RstPort;       /*!< Port where the pin to control the LCD reset pin is */
-    uint32_t            RstPin;         /*!< Pin to control the LCD reset pin */
-    GPIO_TypeDef        *RsPort;        /*!< Port where the pin to control the LCD RS pin */
-    uint32_t            RsPin;          /*!< Pin to control the LCD RS pin */
-    GPIO_TypeDef        *CsPort;        /*!< Port where the pin to control the LCD chip select is */
-    uint32_t            CsPin;          /*!< Pin to control the LCD chip select pin */
-    GPIO_TypeDef        *BklPort;       /*!< Port where the pin to control the LCD backlight is */
-    uint32_t            BklPin;         /*!< Pin to control the LCD backlight pin */
-} LCD_HandleTypeDef;
-
-/**
- * @brief  Struct type variable to handle the LCD
- */
-// extern LCD_HandleTypeDef hlcd;
-
-/**
  * @brief  Struct type variable to handle the SPI
  */
 extern SPI_HandleTypeDef SpiHandle;
@@ -136,11 +115,6 @@ extern SPI_HandleTypeDef SpiHandle;
  * @brief  Struct type variable to clock messages
  */
 extern APP_MsgTypeDef ClockMsg;
-
-/**
- * @brief  Variable to control the state machine of display
- */
-extern uint8_t display_lcd;
 
 #endif
 

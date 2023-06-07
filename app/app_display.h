@@ -60,8 +60,8 @@
 #define NUM_10 (uint8_t)10  /*!< Number 10 */
 #define NUM_11 (uint8_t)11  /*!< Number 11 */
 #define NUM_12 (uint8_t)12  /*!< Number 12 */
-#define NUM_16 (uint8_t)16  /*!< Number 16 */
-#define NUM_48 (uint8_t)48  /*!< Number 48 */
+#define NUM_13 (uint8_t)13  /*!< Number 13 */
+#define NUM_14 (uint8_t)14  /*!< Number 14 */
 /**
   @} */
 

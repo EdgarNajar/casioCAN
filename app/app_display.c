@@ -28,11 +28,6 @@ APP_MsgTypeDef ClockMsg;
 SPI_HandleTypeDef SpiHandle;
 
 /**
- * @brief  Variable to control the state machine of display
- */
-uint8_t display_lcd = DISPLAY_TIME;
-
-/**
  * @brief   **Initialization of the LCD**
  *
  * This function initialize the ports to start working with the LCD and to
@@ -45,7 +40,7 @@ uint8_t display_lcd = DISPLAY_TIME;
  */
 void Display_Init( void )
 {
-    uint8_t x;
+    uint8_t state;
 
     SpiHandle.Instance               = SPI1;
     SpiHandle.Init.Mode              = SPI_MODE_MASTER;
@@ -69,7 +64,7 @@ void Display_Init( void )
     hlcd.BklPort    = GPIOB;
     hlcd.BklPin     = GPIO_PIN_4;
     hlcd.SpiHandler = &SpiHandle;
-    x = HEL_LCD_Init( &hlcd );
+    state = HEL_LCD_Init( &hlcd );
 
     HEL_LCD_Backlight( &hlcd, LCD_ON );
 }
@@ -84,6 +79,8 @@ void Display_Init( void )
  */
 void Display_Task( void )
 {    
+    static uint8_t display_lcd = DISPLAY_TIME;
+
     switch( display_lcd )
     {
         case DISPLAY_TIME:
@@ -115,20 +112,20 @@ void Display_Task( void )
  */
 static void Display_TimeString( APP_MsgTypeDef *tm )
 {
-    char buffer_time[NUM_16];
-    uint8_t x;
+    char buffer_time[NUM_8];
+    uint8_t state;
 
-    buffer_time[NUM_0] = (tm->tm.tm_hour / NUM_10) + NUM_48;
-    buffer_time[NUM_1] = (tm->tm.tm_hour % NUM_10) + NUM_48;
+    buffer_time[NUM_0] = (tm->tm.tm_hour / NUM_10) + (uint8_t)'0';
+    buffer_time[NUM_1] = (tm->tm.tm_hour % NUM_10) + (uint8_t)'0';
     buffer_time[NUM_2] = ':';
-    buffer_time[NUM_3] = (tm->tm.tm_min / NUM_10) + NUM_48;
-    buffer_time[NUM_4] = (tm->tm.tm_min % NUM_10) + NUM_48;
+    buffer_time[NUM_3] = (tm->tm.tm_min / NUM_10) + (uint8_t)'0';
+    buffer_time[NUM_4] = (tm->tm.tm_min % NUM_10) + (uint8_t)'0';
     buffer_time[NUM_5] = ':';
-    buffer_time[NUM_6] = (tm->tm.tm_sec / NUM_10) + NUM_48;
-    buffer_time[NUM_7] = (tm->tm.tm_sec % NUM_10) + NUM_48;
+    buffer_time[NUM_6] = (tm->tm.tm_sec / NUM_10) + (uint8_t)'0';
+    buffer_time[NUM_7] = (tm->tm.tm_sec % NUM_10) + (uint8_t)'0';
 
-    x = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_3 );
-    x = HEL_LCD_String( &hlcd, &buffer_time[NUM_0] );
+    state = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_3 );
+    state = HEL_LCD_String( &hlcd, &buffer_time[NUM_0] );
 }
 
 /**
@@ -143,34 +140,31 @@ static void Display_TimeString( APP_MsgTypeDef *tm )
  */
 static void Display_DateString( APP_MsgTypeDef *tm )
 {
-    char buffer_date[NUM_16];
-    uint8_t x;
+    char buffer_date[NUM_14];
+    uint8_t state;
     
-    char months[NUM_12][NUM_3] = { {'J','A','N'}, {'F','E','B'}, {'M','A','R'}, {'A','P','R'}, {'M','A','Y'}, {'J','U','N'}, 
-                                   {'J','U','L'}, {'A','U','G'}, {'S','E','P'}, {'O','C','T'}, {'N','O','V'}, {'D','E','C'} };
+    char *months[NUM_12] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
-    char days_w[NUM_7][NUM_2] = { {'M','O'}, {'T','U'}, {'W','E'}, {'T','H'}, {'F','R'}, {'S','A'}, {'S','U'} };
-    
-    for(uint8_t x = NUM_0; x < NUM_3; x++)
+    char *days_w[NUM_7] = { "MO", "TU", "WE", "TH", "FR", "SA", "SU" };
+
+    for( uint8_t i = NUM_0; i < NUM_3; i++)
     {
-        buffer_date[x] = months[(tm->tm.tm_mon)-(uint32_t)1][x];
+        /* cppcheck-suppress misra-c2012-18.4 ; Nedded to move trough pointer */
+        buffer_date[i]  = *(months[(tm->tm.tm_mon)-(uint32_t)1]+i);
     }
-
     buffer_date[NUM_3]  = ',';
-    buffer_date[NUM_4]  = (tm->tm.tm_mday / NUM_10) + NUM_48;
-    buffer_date[NUM_5]  = (tm->tm.tm_mday % NUM_10) + NUM_48;
+    buffer_date[NUM_4]  = (tm->tm.tm_mday / NUM_10) + (uint8_t)'0';
+    buffer_date[NUM_5]  = (tm->tm.tm_mday % NUM_10) + (uint8_t)'0';
     buffer_date[NUM_6]  = ' ';
-    buffer_date[NUM_7]  = (tm->tm.tm_yday / HEX_10) + NUM_48;
-    buffer_date[NUM_8]  = (tm->tm.tm_yday % HEX_10) + NUM_48;
-    buffer_date[NUM_9]  = (tm->tm.tm_year / NUM_10) + NUM_48;
-    buffer_date[NUM_10] = (tm->tm.tm_year % NUM_10) + NUM_48;
+    buffer_date[NUM_7]  = (tm->tm.tm_yday / HEX_10) + (uint8_t)'0';
+    buffer_date[NUM_8]  = (tm->tm.tm_yday % HEX_10) + (uint8_t)'0';
+    buffer_date[NUM_9]  = (tm->tm.tm_year / NUM_10) + (uint8_t)'0';
+    buffer_date[NUM_10] = (tm->tm.tm_year % NUM_10) + (uint8_t)'0';
     buffer_date[NUM_11] = ' ';
+    buffer_date[NUM_12] = *days_w[(tm->tm.tm_wday)-(uint32_t)1];
+    /* cppcheck-suppress misra-c2012-18.4 ; Nedded to move trough pointer */
+    buffer_date[NUM_13] = *(days_w[(tm->tm.tm_wday)-(uint32_t)1]+(uint32_t)1);
 
-    for(uint8_t x = NUM_0; x < NUM_2; x++)
-    {
-        buffer_date[x+(uint8_t)12] = days_w[(tm->tm.tm_wday)-(uint32_t)1][x];
-    }
-
-    x = HEL_LCD_SetCursor( &hlcd, ROW_ONE, COL_1 );
-    x = HEL_LCD_String( &hlcd, &buffer_date[NUM_0] );
+    state = HEL_LCD_SetCursor( &hlcd, ROW_ONE, COL_1 );
+    state = HEL_LCD_String( &hlcd, &buffer_date[NUM_0] );
 }

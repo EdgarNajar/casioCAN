@@ -43,6 +43,22 @@
 /**
   @} */
 
+/**
+  * @brief   Structure for LCD control
+  */
+typedef struct
+{
+    SPI_HandleTypeDef   *SpiHandler;    /*!< SPI handler address of the spi to use with the LCD */
+    GPIO_TypeDef        *RstPort;       /*!< Port where the pin to control the LCD reset pin is */
+    uint32_t            RstPin;         /*!< Pin to control the LCD reset pin */
+    GPIO_TypeDef        *RsPort;        /*!< Port where the pin to control the LCD RS pin */
+    uint32_t            RsPin;          /*!< Pin to control the LCD RS pin */
+    GPIO_TypeDef        *CsPort;        /*!< Port where the pin to control the LCD chip select is */
+    uint32_t            CsPin;          /*!< Pin to control the LCD chip select pin */
+    GPIO_TypeDef        *BklPort;       /*!< Port where the pin to control the LCD backlight is */
+    uint32_t            BklPin;         /*!< Pin to control the LCD backlight pin */
+} LCD_HandleTypeDef;
+
 extern uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd );
 extern void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd );
 extern uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd );
