@@ -39,6 +39,7 @@
 /** 
   * @defgroup States for display data
   @{ */
+#define DISPLAY_IDLE (uint8_t)0  /*!< States for display time */
 #define DISPLAY_TIME (uint8_t)1  /*!< States for display time */
 #define DISPLAY_DATE (uint8_t)2  /*!< States for display date */
 /**

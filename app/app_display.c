@@ -32,7 +32,8 @@ SPI_HandleTypeDef SpiHandle;
  *
  * This function initialize the ports to start working with the LCD and to
  * configure the spi in master mode, full-duplex comunication, clock polarity high
- * and phase in falling edge
+ * and phase in falling edge, the SPI frequency to communicate with the LCD 
+ * should be 5MHz minimum
  *
  * @param   hlcd [in/out] Structure type function to handle the LCD
  *
@@ -83,6 +84,13 @@ void Display_Task( void )
 
     switch( display_lcd )
     {
+        case DISPLAY_IDLE:
+            if( ClockMsg.msg >= NUM_0 )
+            {
+                display_lcd = DISPLAY_TIME;
+            }
+            break;
+
         case DISPLAY_TIME:
             display_lcd = DISPLAY_DATE;
             
@@ -90,7 +98,7 @@ void Display_Task( void )
             break;
 
         case DISPLAY_DATE:
-            display_lcd = DISPLAY_TIME;
+            display_lcd = DISPLAY_IDLE;
 
             Display_DateString( &ClockMsg );
             break;
