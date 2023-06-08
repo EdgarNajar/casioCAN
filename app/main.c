@@ -159,3 +159,23 @@ void peth_the_dog( void )
         HAL_WWDG_Refresh( &hwwdg );
     }
 }
+
+void safe_state( uint8_t *file, uint32_t line, uint8_t error )
+{
+    /*disable all maskable interrupts*/
+    __disable_irq();
+    
+    /*set all outputs to a safe state, you must think what will be the so called safe state 
+    for the pins and peripherals*/
+    
+    /*disable all timers included the WWDG*/
+    
+    /*output the error code using the leds connected to port C*/
+    
+    while( 1u )
+    {
+        /*Waiting for the user to press the reset button, 
+        you can also set a break point here and using 
+        the debugger you can visualize the three parameters file, line and error*/
+    }
+}
