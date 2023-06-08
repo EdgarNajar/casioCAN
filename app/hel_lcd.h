@@ -17,6 +17,46 @@
 
 #include "app_bsp.h"
 
+/** 
+  * @defgroup LCD instruction code
+  @{ */
+#define WAKEUP                 (uint8_t)0x30  /*!< Wakeup code                 */
+#define FUNCTION_SET           (uint8_t)0x39  /*!< Function set code           */
+#define INTERNAL_OSC_FRECUENCY (uint8_t)0x14  /*!< Internal osc frequency code */
+#define POWER_CONTROL          (uint8_t)0x56  /*!< Power control code          */
+#define FOLLOWER_CONTROL       (uint8_t)0x6D  /*!< Follower control code       */
+#define CONTRAST_CMD           (uint8_t)0x70  /*!< Contrast code               */
+#define DISPLAY_ON             (uint8_t)0x0C  /*!< Display on code             */
+#define ENTRY_MODE             (uint8_t)0x06  /*!< Entry mode code             */
+#define CLEAR_SCREEN           (uint8_t)0x01  /*!< Clear screen code           */
+/**
+  @} */
+
+/** 
+  * @defgroup ROW instruction code
+  @{ */
+#define ROW_ONE (uint8_t)0x80  /*!< Move cursor to row one */
+#define ROW_TWO (uint8_t)0xC0  /*!< Move cursor to row two */
+/**
+  @} */
+
+/** 
+  * @defgroup Columns instruction code
+  @{ */
+#define COL_1 (uint8_t)0x01  /*!< Column 1 */
+#define COL_3 (uint8_t)0x03  /*!< Column 3 */
+/**
+  @} */
+
+/** 
+  * @defgroup State of the backlight of the LCD
+  @{ */
+#define LCD_ON     (uint8_t)1  /*!< Turn on backlight  */
+#define LCD_OFF    (uint8_t)2  /*!< Turn off backlight */
+#define LCD_TOGGLE (uint8_t)3  /*!< Toggle backlight   */
+/**
+  @} */
+
 /**
   * @brief   Structure for LCD control
   */
@@ -33,34 +73,8 @@ typedef struct
     uint32_t            BklPin;         /*!< Pin to control the LCD backlight pin */
 } LCD_HandleTypeDef;
 
-/** 
-  * @defgroup LCD instruction code
-  @{ */
-#define WAKEUP                 (uint8_t)0x30  /*!< Wakeup code                 */
-#define FUNCTION_SET           (uint8_t)0x39  /*!< Function set code           */
-#define INTERNAL_OSC_FRECUENCY (uint8_t)0x14  /*!< Internal osc frequency code */
-#define POWER_CONTROL          (uint8_t)0x56  /*!< Power control code          */
-#define FOLLOWER_CONTROL       (uint8_t)0x6D  /*!< Follower control code       */
-#define CONTRAST_CMD           (uint8_t)0x70  /*!< Contrast code               */
-#define DISPLAY_ON             (uint8_t)0x0C  /*!< Display on code             */
-#define ENTRY_MODE             (uint8_t)0x06  /*!< Entry mode code             */
-#define CLEAR_SCREEN           (uint8_t)0x01  /*!< Clear screen code           */
-#define ROW_1                  (uint8_t)0x80  /*!< Move cursor to row one      */
-#define ROW_2                  (uint8_t)0xC0  /*!< Move cursor to row two      */
-/**
-  @} */
-
-/** 
-  * @defgroup State of the backlight of the LCD
-  @{ */
-#define LCD_ON     (uint8_t)1  /*!< Turn on backlight  */
-#define LCD_OFF    (uint8_t)2  /*!< Turn off backlight */
-#define LCD_TOGGLE (uint8_t)3  /*!< Toggle backlight   */
-/**
-  @} */
-
 extern uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd );
-extern __weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd );
+extern void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd );
 extern uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd );
 extern uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data );
 extern uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str );

@@ -40,8 +40,8 @@
 #define DEF_SECONDS       (uint8_t)0x50  /*!< Default seconds       */
 #define DEF_SUBSECONDS    (uint8_t)0x00  /*!< Default subseconds    */
 #define DEF_DATE          (uint8_t)0x31  /*!< Default date          */
-#define DEF_YEARLSB       (uint8_t)0x23  /*!< Default year MSB      */
-#define DEF_YEARMSB       (uint8_t)20    /*!< Default year LSB      */
+#define DEF_YEARLSB       (uint8_t)0x23  /*!< Default year LSB      */
+#define DEF_YEARMSB       (uint8_t)0x20  /*!< Default year MSB      */
 #define DEF_ALARM_HOURS   (uint8_t)0x20  /*!< Default alarm hour    */
 #define DEF_ALARM_MINUTES (uint8_t)0x00  /*!< Default alarm minutes */
 #define DEF_ALARM_SECONDS (uint8_t)0x00  /*!< Default alarm seconds */

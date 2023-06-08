@@ -1,6 +1,6 @@
 /**
  * @file    main.c
- * @brief   **Main file with the calls to all functions needed**
+ * @brief   **Main file with the calls to all functions nedded**
  *
  * This file contains the implementation of the functions nedded to run a clock
  * using CAN protocol 
@@ -11,6 +11,7 @@
 #include "app_bsp.h"
 #include "app_serial.h"
 #include "app_clock.h"
+#include "app_display.h"
 
 static void heart_init( void );
 static void heart_beat( void );
@@ -47,6 +48,7 @@ int main( void )
     Clock_Init();
     heart_init();
     dog_init();
+    Display_Init();
 
     for( ;; )
     {
@@ -54,13 +56,14 @@ int main( void )
         Clock_Task();
         heart_beat();
         peth_the_dog();
+        Display_Task();
     }
 }
 
 /**
- * @brief   **Function to initialize the pin0 in port c**
+ * @brief   **Function to initialize the heartbeat**
  *
- * Farameters to initialize the pin5 in port A, in mode push-pull,
+ * Parameters to initialize the pin5 in port A, in mode push-pull,
  * with no pull-up or pull-down and low frecuency speed
  *
  * @param   tick_heart [out] Equals to the value of function HAL_GetTick
@@ -119,9 +122,9 @@ void heart_beat( void )
  *          tPCLK: APB clock period measured in ms
  *          4096: value corresponding to internal divider
  *          
- *          counter = (1/32000000)(4096)(128)(127-115) = 196ms 851
+ *          counter = (1/32000000)(4096)(128)(127-115) = 196ms
  *                                                
- *          window  = (1/32000000)(4096)(128)(127-108) = 311ms 114
+ *          window  = (1/32000000)(4096)(128)(127-108) = 311ms
  */
 void dog_init( void )
 {

@@ -53,8 +53,6 @@ uint32_t tick_display;
  */
 void Clock_Init( void )
 {
-    initialise_monitor_handles();
-    
     /* Configuration RTC */
     hrtc.Instance             = RTC;
     hrtc.Init.HourFormat      = RTC_HOURFORMAT_24;
@@ -175,9 +173,17 @@ void Clock_Task( void )
             /* Get the RTC current Alarm */
             HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
 
-            (void)printf("Time:  %02d:%02d:%02d\n\r", sTime.Hours, sTime.Minutes, sTime.Seconds);
-            (void)printf("Date:  %02d/%02d/%ld%d\n\r", sDate.Month, sDate.Date, MSGHandler.tm.tm_yday, sDate.Year);
-            (void)printf("Alarm: %02ld:%02ld\n\n\r", MSGHandler.tm.tm_hour, MSGHandler.tm.tm_min);
+            ClockMsg.tm.tm_mday = sDate.Date;
+            ClockMsg.tm.tm_mon  = sDate.Month;
+            ClockMsg.tm.tm_year = sDate.Year;
+            ClockMsg.tm.tm_wday = sDate.WeekDay;
+
+            ClockMsg.tm.tm_hour = sTime.Hours;
+            ClockMsg.tm.tm_min  = sTime.Minutes;
+            ClockMsg.tm.tm_sec  = sTime.Seconds;
+
+            ClockMsg.msg = changes;
+
             break;
 
         default :

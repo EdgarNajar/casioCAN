@@ -13,9 +13,7 @@
 
     #include "stm32g0xx.h"
     #include <stdint.h>
-    /* cppcheck-suppress misra-c2012-21.6 ; Standar library needed for use of semi hosting */
-    #include <stdio.h>
-
+    
 /**
   * @brief   Structure for time data
   */
@@ -109,11 +107,13 @@ extern uint8_t changes;
 extern uint32_t tick_display;
 
 /**
- * @brief  To set the default date and time
+ * @brief  Struct type variable to handle the SPI
  */
-extern uint8_t default_data;
+extern SPI_HandleTypeDef SpiHandle;
 
-extern void initialise_monitor_handles(void);
+/**
+ * @brief  Struct type variable to clock messages
+ */
+extern APP_MsgTypeDef ClockMsg;
 
 #endif
-

@@ -9,7 +9,7 @@
  * @note    None
  */
 #include "app_bsp.h"
-
+#include "hel_lcd.h"
 /**
  * @brief   **CPU's microcontrollers speed**
  *
@@ -158,4 +158,64 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc )
     /* Peripheral clock enable */
     __HAL_RCC_RTC_ENABLE();
     __HAL_RCC_RTCAPB_CLK_ENABLE();
+}
+
+/**
+ * @brief   **SPI**
+ *
+ * Function to initialize the SPI pins
+ *
+ * @param   hspi [in] Pointer to handle the SPI
+ *
+ * @note None
+ */
+/* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
+/* cppcheck-suppress misra-c2012-2.7 ; function defined in HAL library */
+void HAL_SPI_MspInit( SPI_HandleTypeDef *hspi )
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    __GPIOD_CLK_ENABLE();
+    __SPI1_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF1_SPI1;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+}
+
+/**
+ * @brief   **LCD**
+ *
+ * Function to initialize the LCD pins
+ *
+ * @param   hlcd [in] Pointer to handle the LCD
+ *
+ * @note None
+ */
+/* cppcheck-suppress misra-c2012-8.4 ; function defined in hel_lcd.h file */
+/* cppcheck-suppress misra-c2012-8.6 ; function defined in hel_lcd.h file */
+void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    __GPIOD_CLK_ENABLE();
+    __GPIOB_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin   = hlcd->RstPin | hlcd->CsPin | hlcd->RsPin;
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+    HAL_GPIO_Init( GPIOD, &GPIO_InitStruct );
+    HAL_GPIO_WritePin( GPIOD, hlcd->CsPin, SET );
+    
+    GPIO_InitStruct.Pin   = hlcd->BklPin;
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    
+    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
 }
