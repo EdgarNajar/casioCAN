@@ -1,8 +1,8 @@
 /**
- * @file    app_display.c
- * @brief   **structures, variables and function prototypes**
+ * @file    app_display.h
+ * @brief   **File to control the LCD**
  *
- * declaration of all structures, variables and function prototypes to initialize the SPI
+ * This file will control the LCD and the way the information is displayed in the LCD
  *
  * @note    None
  */
@@ -12,33 +12,9 @@
 #include "app_bsp.h"
 
 /** 
-  * @defgroup Rows of the LCD
-  @{ */
-#define ROW_ONE (uint8_t)0  /*!< First row  */
-#define ROW_TWO (uint8_t)1  /*!< Second row */
-/**
-  @} */
-
-/** 
-  * @defgroup Columns of the LCD
-  @{ */
-#define COL_1  (uint8_t)0x1   /*!< Column 1 */
-#define COL_3  (uint8_t)0x3   /*!< Column 3 */
-/**
-  @} */
-
-/** 
-  * @defgroup Backlight state of the LCD
-  @{ */
-#define LCD_ON     (uint8_t)1  /*!< Turn on backlight  */
-#define LCD_OFF    (uint8_t)2  /*!< Turn off backlight */
-#define LCD_TOGGLE (uint8_t)3  /*!< Toggle backlight   */
-/**
-  @} */
-
-/** 
   * @defgroup States for display data
   @{ */
+#define DISPLAY_MSG  (uint8_t)0  /*!< States for display time */
 #define DISPLAY_IDLE (uint8_t)0  /*!< States for display time */
 #define DISPLAY_TIME (uint8_t)1  /*!< States for display time */
 #define DISPLAY_DATE (uint8_t)2  /*!< States for display date */

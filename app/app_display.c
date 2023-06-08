@@ -80,12 +80,12 @@ void Display_Init( void )
  */
 void Display_Task( void )
 {    
-    static uint8_t display_lcd = DISPLAY_TIME;
+    static uint8_t display_lcd = DISPLAY_IDLE;
 
     switch( display_lcd )
     {
         case DISPLAY_IDLE:
-            if( ClockMsg.msg >= NUM_0 )
+            if( ClockMsg.msg >= DISPLAY_MSG )
             {
                 display_lcd = DISPLAY_TIME;
             }

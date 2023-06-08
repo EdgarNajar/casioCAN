@@ -117,4 +117,3 @@ extern SPI_HandleTypeDef SpiHandle;
 extern APP_MsgTypeDef ClockMsg;
 
 #endif
-

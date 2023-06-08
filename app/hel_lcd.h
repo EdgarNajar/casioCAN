@@ -29,8 +29,22 @@
 #define DISPLAY_ON             (uint8_t)0x0C  /*!< Display on code             */
 #define ENTRY_MODE             (uint8_t)0x06  /*!< Entry mode code             */
 #define CLEAR_SCREEN           (uint8_t)0x01  /*!< Clear screen code           */
-#define ROW_1                  (uint8_t)0x80  /*!< Move cursor to row one      */
-#define ROW_2                  (uint8_t)0xC0  /*!< Move cursor to row two      */
+/**
+  @} */
+
+/** 
+  * @defgroup ROW instruction code
+  @{ */
+#define ROW_ONE (uint8_t)0x80  /*!< Move cursor to row one */
+#define ROW_TWO (uint8_t)0xC0  /*!< Move cursor to row two */
+/**
+  @} */
+
+/** 
+  * @defgroup Columns instruction code
+  @{ */
+#define COL_1 (uint8_t)0x01  /*!< Column 1 */
+#define COL_3 (uint8_t)0x03  /*!< Column 3 */
 /**
   @} */
 

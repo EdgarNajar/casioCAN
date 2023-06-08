@@ -199,11 +199,10 @@ uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
  */
 uint8_t HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
 {
-    uint8_t cursor[2] = {ROW_1, ROW_2}; 
     uint8_t address;
     uint8_t x;
 
-    address = cursor[row] + col;
+    address = row + col;
     
     /* Second row */
     x = HEL_LCD_Command( hlcd, address );
