@@ -92,6 +92,7 @@ void Serial_Init( void )
     CANHandler.Init.NominalTimeSeg2      = VAL_NOMINALTIMESEG2;
     /* Set configuration of CAN module*/
     Status = HAL_FDCAN_Init( &CANHandler );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, CAN_RET_ERROR );
 
     /* Declaration of options for configur parameters of CAN transmicion */
@@ -109,17 +110,21 @@ void Serial_Init( void )
     CANFilter.FilterID1    = VAL_FILTERID1;
     CANFilter.FilterID2    = VAL_FILTERID2;
     Status = HAL_FDCAN_ConfigFilter( &CANHandler, &CANFilter );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, CAN_RET_ERROR );
     /* Messages without the filter will by rejected */
     Status = HAL_FDCAN_ConfigGlobalFilter( &CANHandler, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, CAN_RET_ERROR );
 
     /* Change FDCAN instance from initialization mode to normal mode */
     Status = HAL_FDCAN_Start( &CANHandler );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, CAN_RET_ERROR );
 
     /* Activate interruption by reception in fifo0 to the arrive of a message */
     Status = HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, VAL_BUFFERINDEXES );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, CAN_RET_ERROR );
 }
 
@@ -271,6 +276,7 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
     {
         /* Retrieve Rx messages from RX FIFO0 */
         Status = HAL_FDCAN_GetRxMessage( hfdcan, FDCAN_RX_FIFO0, &CANRxHeader, NewMessage );
+        /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
         assert_error( Status == HAL_OK, CAN_RET_ERROR );
 
         flagMessage = NUM_1;
@@ -460,6 +466,7 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
     data[NUM_0] = data_length;
 
     Status = HAL_FDCAN_AddMessageToTxFifoQ( &CANHandler, &CANTxHeader, data );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, CAN_RET_ERROR );
 }
 

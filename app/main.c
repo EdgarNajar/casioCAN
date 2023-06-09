@@ -144,6 +144,7 @@ void dog_init( void )
     hwwdg.Init.EWIMode   = WWDG_EWI_DISABLE;
     
     Status = HAL_WWDG_Init( &hwwdg );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, WWDG_RET_ERROR );
 }
 
