@@ -115,23 +115,40 @@ extern SPI_HandleTypeDef SpiHandle;
  * @brief  Struct type variable to clock messages
  */
 extern APP_MsgTypeDef ClockMsg;
+
+
 typedef enum _App_ErrorsCode
-{
-    WWDG_RET_ERROR = 1u,
+{/* cppcheck-suppress misra-c2012-2.4 ; To supress declaration of variable */
+    HEART_RET_ERROR = 1u,
+    WWDG_RET_ERROR,
+    CAN_RET_ERROR,
+    RTC_RET_ERROR,
+    SPI_RET_ERROR,
+    LCD_RET_ERROR,
     RCC_RET_ERROR,
     PWR_RET_ERROR,
-} App_ErrorsCode;
+} App_ErrorsCode; /* cppcheck-suppress misra-c2012-2.3 ; To supress declaration of variable */
 
 /** 
   * @defgroup Functional safety
   @{ */
-#define assert_error(expr, error)         ((expr) ? (void)0U : safe_state((uint8_t *)__FILE__, __LINE__, (error)))  /*!< macro to detect erros, wehere if expr is evaluated to false is an error */
+#define assert_error(expr, error)         ((expr) ? (void)0U : safe_state((uint8_t *)__FILE__, __LINE__, (error)))  /*!< Macro to detect erros, wehere if expr is evaluated to false is an error */
 /**
   @} */
 
-/*external link to fucntion that will act as the safe state*/
+/* External link to fucntion that will act as the safe state */
 extern void safe_state(uint8_t *file, uint32_t line, uint8_t error);
 
-extern void initialise_monitor_handles(void);
+/**
+ * @brief  Struct type variable to functional safety
+ */
+extern HAL_StatusTypeDef Status;
+
+/** 
+  * @defgroup Port C
+  @{ */
+#define PORTC 0xFF  /*!< Pins 0 to 7 of port C  */
+/**
+  @} */
 
 #endif

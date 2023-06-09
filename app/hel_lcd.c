@@ -34,8 +34,6 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
 {
     HEL_LCD_MspInit( hlcd );
 
-    uint8_t x;
-
     /* Chip select off */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
     /* Reset */
@@ -44,22 +42,22 @@ uint8_t HEL_LCD_Init( LCD_HandleTypeDef *hlcd )
     /* Reset */
     HAL_GPIO_WritePin( hlcd->RstPort, hlcd->RstPin, SET );
     HAL_Delay(20);
-    x = HEL_LCD_Command( hlcd, WAKEUP );
+    Status = HEL_LCD_Command( hlcd, WAKEUP );
     HAL_Delay(2);
-    x = HEL_LCD_Command( hlcd, WAKEUP );
-    x = HEL_LCD_Command( hlcd, WAKEUP );
-    x = HEL_LCD_Command( hlcd, FUNCTION_SET );
-    x = HEL_LCD_Command( hlcd, INTERNAL_OSC_FRECUENCY );
-    x = HEL_LCD_Command( hlcd, POWER_CONTROL );
-    x = HEL_LCD_Command( hlcd, FOLLOWER_CONTROL );
+    Status = HEL_LCD_Command( hlcd, WAKEUP );
+    Status = HEL_LCD_Command( hlcd, WAKEUP );
+    Status = HEL_LCD_Command( hlcd, FUNCTION_SET );
+    Status = HEL_LCD_Command( hlcd, INTERNAL_OSC_FRECUENCY );
+    Status = HEL_LCD_Command( hlcd, POWER_CONTROL );
+    Status = HEL_LCD_Command( hlcd, FOLLOWER_CONTROL );
     HAL_Delay(200);
-    x = HEL_LCD_Command( hlcd, CONTRAST_CMD );
-    x = HEL_LCD_Command( hlcd, DISPLAY_ON );
-    x = HEL_LCD_Command( hlcd, ENTRY_MODE );
-    x = HEL_LCD_Command( hlcd, CLEAR_SCREEN );
+    Status = HEL_LCD_Command( hlcd, CONTRAST_CMD );
+    Status = HEL_LCD_Command( hlcd, DISPLAY_ON );
+    Status = HEL_LCD_Command( hlcd, ENTRY_MODE );
+    Status = HEL_LCD_Command( hlcd, CLEAR_SCREEN );
     HAL_Delay(10);
     
-    return x;
+    return Status;
 }
 
 /**
@@ -98,18 +96,16 @@ __weak void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
  */
 uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
 {
-    uint8_t x;
-
     /* Command mode */
     HAL_GPIO_WritePin( hlcd->RsPort, hlcd->RsPin, RESET );
     /* Chip select on */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, RESET );
     /* send command */
-    x = HAL_SPI_Transmit( hlcd->SpiHandler, &cmd, sizeof(cmd), 5000 );
+    Status = HAL_SPI_Transmit( hlcd->SpiHandler, &cmd, sizeof(cmd), 5000 );
     /* chip select off */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
 
-    return x;
+    return Status;
 }
 
 /**
@@ -132,18 +128,16 @@ uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
 /* cppcheck-suppress misra-c2012-8.7 ; Function to be used in future applications */
 uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
 {
-    uint8_t x;
-
     /* Data mode */
     HAL_GPIO_WritePin( hlcd->RsPort, hlcd->RsPin, SET );
     /* Chip select on */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, RESET );
     /* Send data */
-    x = HAL_SPI_Transmit( hlcd->SpiHandler, &data, 1, 5000 );
+    Status = HAL_SPI_Transmit( hlcd->SpiHandler, &data, 1, 5000 );
     /* Chip select off */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
 
-    return x;
+    return Status;
 }
 
 /**
@@ -165,15 +159,15 @@ uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
 uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
 {
     uint8_t i = 0;
-    uint8_t x = 1;
+    Status = HAL_ERROR;
 
     while( str[i] != '\0' )
     {
-        x = HEL_LCD_Data( hlcd, str[i] );
+        Status = HEL_LCD_Data( hlcd, str[i] );
         i++;
     }
 
-    return x;
+    return Status;
 }
 
 /**
@@ -200,14 +194,13 @@ uint8_t HEL_LCD_String( LCD_HandleTypeDef *hlcd, char *str )
 uint8_t HEL_LCD_SetCursor( LCD_HandleTypeDef *hlcd, uint8_t row, uint8_t col )
 {
     uint8_t address;
-    uint8_t x;
 
     address = row + col;
     
     /* Second row */
-    x = HEL_LCD_Command( hlcd, address );
+    Status = HEL_LCD_Command( hlcd, address );
 
-    return x;
+    return Status;
 }
 
 /**
@@ -254,10 +247,8 @@ void HEL_LCD_Backlight( LCD_HandleTypeDef *hlcd, uint8_t state )
  */
 uint8_t HEL_LCD_Contrast( LCD_HandleTypeDef *hlcd, uint8_t contrast )
 {
-    uint8_t x;
-
     /* Constrast */
-    x = HEL_LCD_Command( hlcd, (contrast | CONTRAST_CMD ) );
+    Status = HEL_LCD_Command( hlcd, (contrast | CONTRAST_CMD ) );
 
-    return x;
+    return Status;
 }

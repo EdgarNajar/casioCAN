@@ -34,6 +34,11 @@ static uint32_t tick_heart;
 static uint32_t tick_dog;
 
 /**
+ * @brief  Struct type variable to functional safety
+ */
+HAL_StatusTypeDef Status;
+
+/**
  * @brief   **Implementation of the main program**
  *
  * Contains the calls to all the functions nedded to run the clock
@@ -72,7 +77,7 @@ int main( void )
  */
 void heart_init( void )
 {
-    __HAL_RCC_GPIOA_CLK_ENABLE();          
+    __HAL_RCC_GPIOA_CLK_ENABLE();     
 
     GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -138,7 +143,8 @@ void dog_init( void )
     hwwdg.Init.Counter   = VAL_COUNTER;
     hwwdg.Init.EWIMode   = WWDG_EWI_DISABLE;
     
-    HAL_WWDG_Init( &hwwdg );
+    Status = HAL_WWDG_Init( &hwwdg );
+    assert_error( Status == HAL_OK, WWDG_RET_ERROR );
 }
 
 /**
@@ -162,20 +168,77 @@ void peth_the_dog( void )
 
 void safe_state( uint8_t *file, uint32_t line, uint8_t error )
 {
-    /*disable all maskable interrupts*/
+    /* Disable all maskable interrupts */
     __disable_irq();
+    __HAL_RCC_SYSCFG_CLK_DISABLE();
+    __HAL_RCC_PWR_CLK_DISABLE();
+    __HAL_RCC_RTC_DISABLE();
+    __HAL_RCC_RTCAPB_CLK_DISABLE();
+    __HAL_RCC_FDCAN_CLK_DISABLE();
+    // __HAL_RCC_GPIOD_CLK_DISABLE();
+    __HAL_RCC_SPI1_CLK_DISABLE();
+    // __HAL_RCC_GPIOB_CLK_DISABLE();
+    // __HAL_RCC_GPIOA_CLK_ENABLE();     
     
-    /*set all outputs to a safe state, you must think what will be the so called safe state 
-    for the pins and peripherals*/
+    /* Set all outputs to a safe state, you must think what will be the so called safe state 
+    for the pins and peripherals */
+
+    /* CAN pins */
+    GPIO_InitTypeDef GpioCanStruct;
+
+    GpioCanStruct.Pin       = GPIO_PIN_0 | GPIO_PIN_1;
+    GpioCanStruct.Mode      = GPIO_MODE_INPUT;
+    // GpioCanStruct.Alternate = GPIO_AF3_FDCAN1;
+    GpioCanStruct.Pull      = GPIO_NOPULL;
+    GpioCanStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init( GPIOD, &GpioCanStruct );
+
+    /* SPI pins */
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    // GPIO_InitStruct.Alternate = GPIO_AF1_SPI1;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+    /* LCD pins */
+    GPIO_InitStruct.Pin   = GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init( GPIOD, &GPIO_InitStruct );
     
-    /*disable all timers included the WWDG*/
+    /* LCD backlight pin */
+    GPIO_InitStruct.Pin   = GPIO_PIN_4;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
+
+    /* Heartbeat pin */
+    GPIO_InitStruct.Pin   = GPIO_PIN_5;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init( GPIOA, &GPIO_InitStruct );
     
-    /*output the error code using the leds connected to port C*/
+    /* Disable all timers included the WWDG */
+
+    /* Output the error code using the leds connected to port C */
+    GPIO_InitStruct.Pin = PORTC; 
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;     
+    GPIO_InitStruct.Pull = GPIO_NOPULL;             
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    
     
-    while( 1u )
+    HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );
+    
+    HAL_GPIO_WritePin( GPIOC, PORTC , RESET );
+    HAL_GPIO_WritePin( GPIOC, error , SET );
+
+    while( 1 )
     {
-        /*Waiting for the user to press the reset button, 
-        you can also set a break point here and using 
-        the debugger you can visualize the three parameters file, line and error*/
+        /* Waiting for the user to press the reset button */
     }
 }
