@@ -36,7 +36,7 @@ void HAL_MspInit( void )
     /* Configure the main internal regulator output voltage */
     Status = HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, PWR_RET_ERROR );
+    assert_error( Status == HAL_OK, PWR_CONVOLSCA_RET_ERROR );
 
     RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI;
     RCC_OscInitStruct.HSIState            = RCC_HSI_ON;
@@ -51,7 +51,7 @@ void HAL_MspInit( void )
     RCC_OscInitStruct.PLL.PLLR            = RCC_PLLR_DIV2;
     Status = HAL_RCC_OscConfig( &RCC_OscInitStruct );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_OSCCON_RET_ERROR );
     
     /* Initializes the CPU, AHB and APB buses clocks */
     RCC_ClkInitStruct.ClockType       = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1;
@@ -60,7 +60,7 @@ void HAL_MspInit( void )
     RCC_ClkInitStruct.APB1CLKDivider  = RCC_HCLK_DIV2;
     Status = HAL_RCC_ClockConfig( &RCC_ClkInitStruct, FLASH_LATENCY_2 );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_CLOCKCON_RET_ERROR );
 
     // RCC_OscInitTypeDef        RCC_OscInitStruct   = {0};
     RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct = {0};
@@ -71,20 +71,20 @@ void HAL_MspInit( void )
     /* Enable backup domain */
     Status = HAL_PWREx_ControlVoltageScaling( PWR_REGULATOR_VOLTAGE_SCALE1 );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, PWR_CONVOLSCA_RET_ERROR );
 
     HAL_PWR_EnableBkUpAccess();
 
     Status = __HAL_RCC_LSEDRIVE_CONFIG( RCC_LSEDRIVE_LOW );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_LSEDRI_RET_ERROR );
 
     /* Reset previous RTC source clock */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_NONE;
     Status = HAL_RCCEx_PeriphCLKConfig( &PeriphClkInitStruct );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_PERCLKCON_RET_ERROR );
 
     /* Configure LSE/LSI as RTC clock source */
     RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
@@ -93,13 +93,13 @@ void HAL_MspInit( void )
     RCC_OscInitStruct.LSIState = RCC_LSI_OFF;
     Status = HAL_RCC_OscConfig( &RCC_OscInitStruct );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_OSCCON_RET_ERROR );
 
     /* Set LSE as source clock */
     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
     Status = HAL_RCCEx_PeriphCLKConfig( &PeriphClkInitStruct );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_PERCLKCON_RET_ERROR );
         
     /* Peripheral clock enable */
     __HAL_RCC_RTC_ENABLE();
@@ -155,20 +155,20 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc )
     /* Enable backup domain */
     Status = HAL_PWREx_ControlVoltageScaling( PWR_REGULATOR_VOLTAGE_SCALE1 );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, PWR_CONVOLSCA_RET_ERROR );
 
     HAL_PWR_EnableBkUpAccess();
 
     Status = __HAL_RCC_LSEDRIVE_CONFIG( RCC_LSEDRIVE_LOW );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_LSEDRI_RET_ERROR );
 
     /* Reset previous RTC source clock */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_NONE;
     Status = HAL_RCCEx_PeriphCLKConfig( &PeriphClkInitStruct );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_PERCLKCON_RET_ERROR );
 
     /* Configure LSE/LSI as RTC clock source */
     RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
@@ -177,13 +177,13 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc )
     RCC_OscInitStruct.LSIState = RCC_LSI_OFF;
     Status = HAL_RCC_OscConfig( &RCC_OscInitStruct );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_OSCCON_RET_ERROR );
 
     /* Set LSE as source clock */
     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
     Status = HAL_RCCEx_PeriphCLKConfig( &PeriphClkInitStruct );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_RET_ERROR );
+    assert_error( Status == HAL_OK, RCC_PERCLKCON_RET_ERROR );
         
     /* Peripheral clock enable */
     __HAL_RCC_RTC_ENABLE();

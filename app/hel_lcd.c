@@ -102,6 +102,8 @@ uint8_t HEL_LCD_Command( LCD_HandleTypeDef *hlcd, uint8_t cmd )
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, RESET );
     /* send command */
     Status = HAL_SPI_Transmit( hlcd->SpiHandler, &cmd, sizeof(cmd), 5000 );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, SPI_TRAN_RET_ERROR );
     /* chip select off */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
 
@@ -134,6 +136,8 @@ uint8_t HEL_LCD_Data( LCD_HandleTypeDef *hlcd, uint8_t data )
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, RESET );
     /* Send data */
     Status = HAL_SPI_Transmit( hlcd->SpiHandler, &data, 1, 5000 );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, SPI_TRAN_RET_ERROR );
     /* Chip select off */
     HAL_GPIO_WritePin( hlcd->CsPort, hlcd->CsPin, SET );
 

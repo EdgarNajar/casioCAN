@@ -62,7 +62,7 @@ void Clock_Init( void )
     /* Initilize the RTC with 24 hour format and no output signal enble */
     Status = HAL_RTC_Init( &hrtc );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RTC_RET_ERROR );
+    assert_error( Status == HAL_OK, RTC_INIT_RET_ERROR );
 
     tick_display = HAL_GetTick();
 
@@ -75,7 +75,7 @@ void Clock_Init( void )
     sTime.StoreOperation = RTC_STOREOPERATION_RESET;
     Status = HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RTC_RET_ERROR );
+    assert_error( Status == HAL_OK, RTC_SETDEFTIME_RET_ERROR );
 
     /* Setting default date at Monday January 31, 2023 in BCD format */
     sDate.WeekDay = RTC_WEEKDAY_TUESDAY;
@@ -85,7 +85,7 @@ void Clock_Init( void )
     MSGHandler.tm.tm_yday = DEF_YEARMSB;
     Status = HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RTC_RET_ERROR );
+    assert_error( Status == HAL_OK, RTC_SETDEFDATE_RET_ERROR );
 
     sAlarm.AlarmTime.Hours   = DEF_ALARM_HOURS;
     sAlarm.AlarmTime.Minutes = DEF_ALARM_MINUTES;
@@ -99,7 +99,7 @@ void Clock_Init( void )
     sAlarm.Alarm = RTC_ALARM_A;
     Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RTC_RET_ERROR );
+    assert_error( Status == HAL_OK, RTC_SETDEFALARM_RET_ERROR );
 }
 
 /**
@@ -150,7 +150,7 @@ void Clock_Task( void )
             sTime.Seconds = MSGHandler.tm.tm_sec;
             Status = HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_RET_ERROR );
+            assert_error( Status == HAL_OK, RTC_SETTIME_RET_ERROR );
             break;
 
         case CHANGE_DATE:
@@ -164,7 +164,7 @@ void Clock_Task( void )
             /* Set date */
             Status = HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_RET_ERROR );
+            assert_error( Status == HAL_OK, RTC_SETDATE_RET_ERROR );
             break;
 
         case CHANGE_ALARM:
@@ -174,7 +174,7 @@ void Clock_Task( void )
             sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_min;
             Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_RET_ERROR );
+            assert_error( Status == HAL_OK, RTC_SETALARM_RET_ERROR );
             break;
 
         case DISPLAY:
@@ -183,15 +183,15 @@ void Clock_Task( void )
             /* Get the RTC current Time */
             Status = HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_RET_ERROR );
+            assert_error( Status == HAL_OK, RTC_GETTIME_RET_ERROR );
             /* Get the RTC current Date */
             Status = HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_RET_ERROR );
+            assert_error( Status == HAL_OK, RTC_GETDATE_RET_ERROR );
             /* Get the RTC current Alarm */
             Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_RET_ERROR );
+            assert_error( Status == HAL_OK, RTC_GETALARM_RET_ERROR );
 
             ClockMsg.tm.tm_mday = sDate.Date;
             ClockMsg.tm.tm_mon  = sDate.Month;

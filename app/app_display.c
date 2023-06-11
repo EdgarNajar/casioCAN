@@ -54,7 +54,7 @@ void Display_Init( void )
     SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLED;
     Status = HAL_SPI_Init( &SpiHandle );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, SPI_RET_ERROR );
+    assert_error( Status == HAL_OK, SPI_INIT_RET_ERROR );
 
     hlcd.RstPort    = GPIOD;
     hlcd.RstPin     = GPIO_PIN_2;
@@ -67,7 +67,7 @@ void Display_Init( void )
     hlcd.SpiHandler = &SpiHandle;
     Status = HEL_LCD_Init( &hlcd );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, LCD_RET_ERROR );
+    assert_error( Status == HAL_OK, LCD_INIT_RET_ERROR );
 
     HEL_LCD_Backlight( &hlcd, LCD_ON );
 }
@@ -135,10 +135,10 @@ static void Display_TimeString( APP_MsgTypeDef *tm )
 
     Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_3 );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, LCD_RET_ERROR );
+    assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
     Status = HEL_LCD_String( &hlcd, &buffer_time[NUM_0] );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, LCD_RET_ERROR );
+    assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
 }
 
 /**
@@ -179,8 +179,8 @@ static void Display_DateString( APP_MsgTypeDef *tm )
 
     Status = HEL_LCD_SetCursor( &hlcd, ROW_ONE, COL_1 );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, LCD_RET_ERROR );
+    assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
     Status = HEL_LCD_String( &hlcd, &buffer_date[NUM_0] );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, LCD_RET_ERROR );
+    assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
 }
