@@ -75,9 +75,7 @@ void HAL_MspInit( void )
 
     HAL_PWR_EnableBkUpAccess();
 
-    Status = __HAL_RCC_LSEDRIVE_CONFIG( RCC_LSEDRIVE_LOW );
-    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_LSEDRI_RET_ERROR );
+    __HAL_RCC_LSEDRIVE_CONFIG( RCC_LSEDRIVE_LOW );
 
     /* Reset previous RTC source clock */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
@@ -159,10 +157,8 @@ void HAL_RTC_MspInit( RTC_HandleTypeDef* hrtc )
 
     HAL_PWR_EnableBkUpAccess();
 
-    Status = __HAL_RCC_LSEDRIVE_CONFIG( RCC_LSEDRIVE_LOW );
-    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RCC_LSEDRI_RET_ERROR );
-
+    __HAL_RCC_LSEDRIVE_CONFIG( RCC_LSEDRIVE_LOW );
+    
     /* Reset previous RTC source clock */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
     PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_NONE;

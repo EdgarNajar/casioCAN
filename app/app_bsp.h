@@ -77,7 +77,7 @@ typedef enum
   @{ */
 #define VAL_WINDOW   (uint32_t)108  /*!< Value to the window of the window watchdog  */
 #define VAL_COUNTER  (uint32_t)115  /*!< Value to the counter of the window watchdog */
-#define REFRESH_WWDG (uint32_t)195  /*!< Time to refresh the window watchdog         */
+#define REFRESH_WWDG (uint32_t)250  /*!< Time to refresh the window watchdog         */
 /**
   @} */
 
@@ -120,6 +120,7 @@ extern APP_MsgTypeDef ClockMsg;
 typedef enum _App_ErrorsCode
 {/* cppcheck-suppress misra-c2012-2.4 ; To supress declaration of variable */
     WWDG_RET_ERROR = 1u,
+    WWDG_REFRESH_RET_ERROR,
     CAN_INIT_RET_ERROR,
     CAN_CONFIL_RET_ERROR,
     CAN_CONFIGLOB_RET_ERROR,
@@ -145,7 +146,6 @@ typedef enum _App_ErrorsCode
     PWR_CONVOLSCA_RET_ERROR,
     RCC_OSCCON_RET_ERROR,
     RCC_CLOCKCON_RET_ERROR,
-    RCC_LSEDRI_RET_ERROR,
     RCC_PERCLKCON_RET_ERROR,
 } App_ErrorsCode; /* cppcheck-suppress misra-c2012-2.3 ; To supress declaration of variable */
 
