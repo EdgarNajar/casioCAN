@@ -41,8 +41,6 @@ SPI_HandleTypeDef SpiHandle;
  */
 void Display_Init( void )
 {
-    uint8_t state;
-
     SpiHandle.Instance               = SPI1;
     SpiHandle.Init.Mode              = SPI_MODE_MASTER;
     SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
@@ -54,7 +52,9 @@ void Display_Init( void )
     SpiHandle.Init.NSS               = SPI_NSS_SOFT;
     SpiHandle.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLED;
     SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLED;
-    HAL_SPI_Init( &SpiHandle );
+    Status = HAL_SPI_Init( &SpiHandle );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, SPI_INIT_RET_ERROR );
 
     hlcd.RstPort    = GPIOD;
     hlcd.RstPin     = GPIO_PIN_2;
@@ -65,7 +65,9 @@ void Display_Init( void )
     hlcd.BklPort    = GPIOB;
     hlcd.BklPin     = GPIO_PIN_4;
     hlcd.SpiHandler = &SpiHandle;
-    state = HEL_LCD_Init( &hlcd );
+    Status = HEL_LCD_Init( &hlcd );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, LCD_INIT_RET_ERROR );
 
     HEL_LCD_Backlight( &hlcd, LCD_ON );
 }
@@ -121,7 +123,6 @@ void Display_Task( void )
 static void Display_TimeString( APP_MsgTypeDef *tm )
 {
     char buffer_time[NUM_8];
-    uint8_t state;
 
     buffer_time[NUM_0] = (tm->tm.tm_hour / NUM_10) + (uint8_t)'0';
     buffer_time[NUM_1] = (tm->tm.tm_hour % NUM_10) + (uint8_t)'0';
@@ -132,8 +133,12 @@ static void Display_TimeString( APP_MsgTypeDef *tm )
     buffer_time[NUM_6] = (tm->tm.tm_sec / NUM_10) + (uint8_t)'0';
     buffer_time[NUM_7] = (tm->tm.tm_sec % NUM_10) + (uint8_t)'0';
 
-    state = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_3 );
-    state = HEL_LCD_String( &hlcd, &buffer_time[NUM_0] );
+    Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_3 );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+    Status = HEL_LCD_String( &hlcd, &buffer_time[NUM_0] );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
 }
 
 /**
@@ -149,7 +154,6 @@ static void Display_TimeString( APP_MsgTypeDef *tm )
 static void Display_DateString( APP_MsgTypeDef *tm )
 {
     char buffer_date[NUM_14];
-    uint8_t state;
     
     char *months[NUM_12] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
@@ -173,6 +177,10 @@ static void Display_DateString( APP_MsgTypeDef *tm )
     /* cppcheck-suppress misra-c2012-18.4 ; Nedded to move trough pointer */
     buffer_date[NUM_13] = *(days_w[(tm->tm.tm_wday)-(uint32_t)1]+(uint32_t)1);
 
-    state = HEL_LCD_SetCursor( &hlcd, ROW_ONE, COL_1 );
-    state = HEL_LCD_String( &hlcd, &buffer_date[NUM_0] );
+    Status = HEL_LCD_SetCursor( &hlcd, ROW_ONE, COL_1 );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+    Status = HEL_LCD_String( &hlcd, &buffer_date[NUM_0] );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
 }

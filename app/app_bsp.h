@@ -77,7 +77,7 @@ typedef enum
   @{ */
 #define VAL_WINDOW   (uint32_t)108  /*!< Value to the window of the window watchdog  */
 #define VAL_COUNTER  (uint32_t)115  /*!< Value to the counter of the window watchdog */
-#define REFRESH_WWDG (uint32_t)195  /*!< Time to refresh the window watchdog         */
+#define REFRESH_WWDG (uint32_t)250  /*!< Time to refresh the window watchdog         */
 /**
   @} */
 
@@ -115,5 +115,60 @@ extern SPI_HandleTypeDef SpiHandle;
  * @brief  Struct type variable to clock messages
  */
 extern APP_MsgTypeDef ClockMsg;
+
+
+typedef enum _App_ErrorsCode
+{/* cppcheck-suppress misra-c2012-2.4 ; To supress declaration of variable */
+    WWDG_RET_ERROR = 1u,
+    WWDG_REFRESH_RET_ERROR,
+    CAN_INIT_RET_ERROR,
+    CAN_CONFIL_RET_ERROR,
+    CAN_CONFIGLOB_RET_ERROR,
+    CAN_START_RET_ERROR,
+    CAN_ACTNOT_RET_ERROR,
+    CAN_GETMSG_RET_ERROR,
+    CAN_ADDMSG_RET_ERROR,
+    RTC_INIT_RET_ERROR,
+    RTC_SETDEFTIME_RET_ERROR,
+    RTC_SETDEFDATE_RET_ERROR,
+    RTC_SETDEFALARM_RET_ERROR,
+    RTC_GETTIME_RET_ERROR,
+    RTC_GETDATE_RET_ERROR,
+    RTC_GETALARM_RET_ERROR,
+    RTC_SETTIME_RET_ERROR,
+    RTC_SETDATE_RET_ERROR,
+    RTC_SETALARM_RET_ERROR,
+    SPI_INIT_RET_ERROR,
+    LCD_INIT_RET_ERROR,
+    LCD_SETCUR_RET_ERROR,
+    LCD_STRING_RET_ERROR,
+    SPI_TRAN_RET_ERROR,
+    PWR_CONVOLSCA_RET_ERROR,
+    RCC_OSCCON_RET_ERROR,
+    RCC_CLOCKCON_RET_ERROR,
+    RCC_PERCLKCON_RET_ERROR,
+} App_ErrorsCode; /* cppcheck-suppress misra-c2012-2.3 ; To supress declaration of variable */
+
+/** 
+  * @defgroup Functional safety
+  @{ */
+#define assert_error(expr, error)         ((expr) ? (void)0U : safe_state((uint8_t *)__FILE__, __LINE__, (error)))  /*!< Macro to detect erros, wehere if expr is evaluated to false is an error */
+/**
+  @} */
+
+/* External link to fucntion that will act as the safe state */
+extern void safe_state(uint8_t *file, uint32_t line, uint8_t error);
+
+/**
+ * @brief  Struct type variable to functional safety
+ */
+extern HAL_StatusTypeDef Status;
+
+/** 
+  * @defgroup Port C
+  @{ */
+#define PORTC 0xFF  /*!< Pins 0 to 7 of port C  */
+/**
+  @} */
 
 #endif

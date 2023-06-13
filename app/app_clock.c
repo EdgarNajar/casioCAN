@@ -60,7 +60,9 @@ void Clock_Init( void )
     hrtc.Init.SynchPrediv     = VAL_SYNCHPREDIV;
     hrtc.Init.OutPut          = RTC_OUTPUT_DISABLE;
     /* Initilize the RTC with 24 hour format and no output signal enble */
-    HAL_RTC_Init( &hrtc );
+    Status = HAL_RTC_Init( &hrtc );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, RTC_INIT_RET_ERROR );
 
     tick_display = HAL_GetTick();
 
@@ -71,7 +73,9 @@ void Clock_Init( void )
     sTime.SubSeconds = DEF_SUBSECONDS;
     sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
     sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-    HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
+    Status = HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, RTC_SETDEFTIME_RET_ERROR );
 
     /* Setting default date at Monday January 31, 2023 in BCD format */
     sDate.WeekDay = RTC_WEEKDAY_TUESDAY;
@@ -79,7 +83,9 @@ void Clock_Init( void )
     sDate.Date = DEF_DATE;
     sDate.Year = DEF_YEARLSB;
     MSGHandler.tm.tm_yday = DEF_YEARMSB;
-    HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+    Status = HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, RTC_SETDEFDATE_RET_ERROR );
 
     sAlarm.AlarmTime.Hours   = DEF_ALARM_HOURS;
     sAlarm.AlarmTime.Minutes = DEF_ALARM_MINUTES;
@@ -91,7 +97,9 @@ void Clock_Init( void )
     // sAlarm.AlarmDateWeekDay = 0x12;
     sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
     sAlarm.Alarm = RTC_ALARM_A;
-    HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+    Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, RTC_SETDEFALARM_RET_ERROR );
 }
 
 /**
@@ -140,7 +148,9 @@ void Clock_Task( void )
             sTime.Hours   = MSGHandler.tm.tm_hour;
             sTime.Minutes = MSGHandler.tm.tm_min;
             sTime.Seconds = MSGHandler.tm.tm_sec;
-            HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
+            Status = HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
+            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+            assert_error( Status == HAL_OK, RTC_SETTIME_RET_ERROR );
             break;
 
         case CHANGE_DATE:
@@ -152,7 +162,9 @@ void Clock_Task( void )
             sDate.Date    = MSGHandler.tm.tm_mday;
             sDate.Year    = MSGHandler.tm.tm_year;
             /* Set date */
-            HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+            Status = HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
+            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+            assert_error( Status == HAL_OK, RTC_SETDATE_RET_ERROR );
             break;
 
         case CHANGE_ALARM:
@@ -160,18 +172,26 @@ void Clock_Task( void )
 
             sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_hour;
             sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_min;
-            HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+            Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+            assert_error( Status == HAL_OK, RTC_SETALARM_RET_ERROR );
             break;
 
         case DISPLAY:
             changes = WAIT_MESSAGE;
             
             /* Get the RTC current Time */
-            HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
+            Status = HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
+            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+            assert_error( Status == HAL_OK, RTC_GETTIME_RET_ERROR );
             /* Get the RTC current Date */
-            HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
+            Status = HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
+            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+            assert_error( Status == HAL_OK, RTC_GETDATE_RET_ERROR );
             /* Get the RTC current Alarm */
-            HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
+            Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
+            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+            assert_error( Status == HAL_OK, RTC_GETALARM_RET_ERROR );
 
             ClockMsg.tm.tm_mday = sDate.Date;
             ClockMsg.tm.tm_mon  = sDate.Month;

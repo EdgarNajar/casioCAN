@@ -34,6 +34,11 @@ static uint32_t tick_heart;
 static uint32_t tick_dog;
 
 /**
+ * @brief  Struct type variable to functional safety
+ */
+HAL_StatusTypeDef Status;
+
+/**
  * @brief   **Implementation of the main program**
  *
  * Contains the calls to all the functions nedded to run the clock
@@ -72,7 +77,7 @@ int main( void )
  */
 void heart_init( void )
 {
-    __HAL_RCC_GPIOA_CLK_ENABLE();          
+    __HAL_RCC_GPIOA_CLK_ENABLE();     
 
     GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -138,7 +143,9 @@ void dog_init( void )
     hwwdg.Init.Counter   = VAL_COUNTER;
     hwwdg.Init.EWIMode   = WWDG_EWI_DISABLE;
     
-    HAL_WWDG_Init( &hwwdg );
+    Status = HAL_WWDG_Init( &hwwdg );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, WWDG_RET_ERROR );
 }
 
 /**
@@ -156,6 +163,109 @@ void peth_the_dog( void )
     if( (HAL_GetTick() - tick_dog) >= REFRESH_WWDG )
     {
         tick_dog = HAL_GetTick();
-        HAL_WWDG_Refresh( &hwwdg );
+        Status = HAL_WWDG_Refresh( &hwwdg );
+        /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+        assert_error( Status == HAL_OK, WWDG_REFRESH_RET_ERROR );
+    }
+}
+
+/**
+ * @brief   **Safe state**
+ *
+ * This function is the safe state where all the necessary steps will be taken 
+ * in order to avoid any fatal functionality for the system itself and the user.
+ * First we disable all maskable interrupts, then the CAN pins, the SPI pins, 
+ * the LCD pins, the LCD backlight pin and the Heartbeat pin will be set as inputs
+ * to avoid any issue with short circuit, next all timers included the WWDG will be disabled
+ * and leds connected to port C will be used to output the error code, finally we
+ * just wait for the user to press the reset button to start running the program again.
+ * 
+ * @param   file  [in] In wich file the error was detected
+ * @param   line  [in] In wich line the error was detected
+ * @param   error [in] Wich error was detected
+ *
+ * @note    None
+ */
+void safe_state( uint8_t *file, uint32_t line, uint8_t error )
+{
+    UNUSED( file );
+    UNUSED( line );
+
+    /* Disable all maskable interrupts */
+    __disable_irq();
+    __HAL_RCC_SYSCFG_CLK_DISABLE();
+    __HAL_RCC_PWR_CLK_DISABLE();
+    __HAL_RCC_RTC_DISABLE();
+    __HAL_RCC_RTCAPB_CLK_DISABLE();
+    __HAL_RCC_FDCAN_CLK_DISABLE();
+    // __HAL_RCC_GPIOD_CLK_DISABLE();
+    __HAL_RCC_SPI1_CLK_DISABLE();
+    // __HAL_RCC_GPIOB_CLK_DISABLE();
+    // __HAL_RCC_GPIOA_CLK_DISABLE();     
+    
+    /* Set all outputs to a safe state, you must think what will be the so called safe state 
+    for the pins and peripherals */
+
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    /* CAN pins */
+    GPIO_InitTypeDef GpioCanStruct;
+
+    GpioCanStruct.Pin       = GPIO_PIN_0 | GPIO_PIN_1;
+    GpioCanStruct.Mode      = GPIO_MODE_INPUT;
+    GpioCanStruct.Pull      = GPIO_NOPULL;
+    GpioCanStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init( GPIOD, &GpioCanStruct );
+
+    /* SPI pins */
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    GPIO_InitStruct.Pin   = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_8;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+    /* LCD pins */
+    GPIO_InitStruct.Pin   = GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init( GPIOD, &GPIO_InitStruct );
+    
+    /* LCD backlight pin */
+    GPIO_InitStruct.Pin   = GPIO_PIN_4;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
+
+    /* Heartbeat pin */
+    GPIO_InitStruct.Pin   = GPIO_PIN_5;
+    GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init( GPIOA, &GPIO_InitStruct );
+    
+    /* Disable all timers included the WWDG */
+
+    /* Output the error code using the leds connected to port C */
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+
+    GPIO_InitStruct.Pin   = PORTC; 
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;     
+    GPIO_InitStruct.Pull  = GPIO_NOPULL;             
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    
+    
+    HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );
+    
+    HAL_GPIO_WritePin( GPIOC, PORTC , RESET );
+    HAL_GPIO_WritePin( GPIOC, error , SET );
+
+    while( 1 )
+    {
+        /* Waiting for the user to press the reset button */
     }
 }
