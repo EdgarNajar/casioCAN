@@ -2,21 +2,24 @@
  * @file    hil_queue.c
  * @brief   **Circular buffer driver**
  *
- * This is a driver to implement a circular buffer
+ * This is a driver to implement a circular buffer.
+ * A circular buffer is a data structure that uses 
+ * a fixed-size buffer as if it were connected 
+ * end-to-end (in a circle).
  *
  * @note    None
  */
 #include "hil_queue.h"
+#include <string.h>
 
 /**
  * @brief   **Initialization of queue values**
  *
- * Thi function initialize the values of Head to 0, Tail to 0, Empty to 1
- * and Full to 0, to start working with the queue 
+ * This function initialize the values of Head, 
+ * Tail and Full to 0, Empty is initialize to 1, 
+ * to start working with the queue.
  *
- * @param   data        [in]     Pointer to data
- *
- * @retval  
+ * @param   hqueue [in] Pointer to structure data
  *
  * @note None
  */
@@ -29,13 +32,17 @@ void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue )
 }
 
 /**
- * @brief   ** **
+ * @brief   **Write data to the queue**
  *
+ * The empty pointer data is used to copy the information to the buffer controlled by hqueue.
+ * First we check if the buffer is full, if it is, we can’t write to it and a message of 
+ * error will be returned, if there is room we add the data and increase Head. 
+ * Finally when Head reaches Tail the buffer is full.
  * 
+ * @param   hqueue [in] Pointer to structure data
+ * @param   data   [in] Pointer to data
  *
- * @param   data        [in]     Pointer to data
- *
- * @retval  
+ * @retval  Indicates the state of the queue QUEUE_NOT_OK and QUEUE_OK
  *
  * @note None
  */
@@ -43,14 +50,15 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 {
     uint8_t ret_state = QUEUE_NOT_OK;
 
-    if( hqueue->Full == QUEUE_NOT_FULL )
+    if( (hqueue->Full) == QUEUE_NOT_FULL )
     {
         (hqueue->Head)++;
         hqueue->Buffer = &data;
         hqueue->Empty = QUEUE_NOT_EMPTY;
         ret_state = QUEUE_OK;
     }
-    else if( hqueue->Head == hqueue->Tail )
+    
+    if( (hqueue->Head) == (hqueue->Tail) )
     {
         hqueue->Full = QUEUE_FULL;
         ret_state = QUEUE_NOT_OK;
@@ -60,13 +68,17 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 }
 
 /**
- * @brief   ** **
+ * @brief   **Read data from the queue**
  *
- * 
+ * To read the data first we check if the buffer is empty, if it is, 
+ * we can’t read anyting, so a message of error will be returned, 
+ * if there is something in the buffer, we read it and increase Tail. 
+ * Finally when Tail reaches Head the buffer is empty.
  *
- * @param   data        [in]     Pointer to data
+ * @param   hqueue [in] Pointer to structure data
+ * @param   data   [in] Pointer to data
  *
- * @retval  
+ * @retval  Indicates the state of the queue QUEUE_NOT_OK and QUEUE_OK  
  *
  * @note None
  */
@@ -74,14 +86,15 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 {
     uint8_t ret_state = QUEUE_NOT_OK;
 
-    if( hqueue->Empty == QUEUE_NOT_EMPTY )
+    if( (hqueue->Empty) == QUEUE_NOT_EMPTY )
     {
         (hqueue->Tail)++;
         hqueue->Buffer = &data;
         hqueue->Full = QUEUE_NOT_FULL;
         ret_state = QUEUE_OK;
     }
-    else if( hqueue->Head == hqueue->Tail )
+    
+    if( (hqueue->Head) == (hqueue->Tail) )
     {
         hqueue->Empty = QUEUE_EMPTY;
         ret_state = QUEUE_NOT_OK;
@@ -91,19 +104,21 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 }
 
 /**
- * @brief   ** **
+ * @brief   **Check if the queue is empty**
  *
- * 
+ * This function checks if the buffer is empty comparing Head and Tail,
+ * if are equal then the buffer is empty.
  *
- * @param   data        [in]     Pointer to data
+ * @param   hqueue [in] Pointer to structure data
+ * @param   data   [in] Pointer to data
  *
- * @retval  
+ * @retval  Indicates the state of the queue QUEUE_NOT_OK and QUEUE_OK
  *
  * @note None
  */
 uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 {
-    if( hqueue->Head == hqueue->Tail )
+    if( (hqueue->Head) == (hqueue->Tail) )
     {
         hqueue->Empty = QUEUE_EMPTY;
     }
@@ -112,13 +127,12 @@ uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 }
 
 /**
- * @brief   ** **
+ * @brief   **Flush the queue**
  *
- * 
+ * This function returns the initial values 
  *
- * @param   data        [in]     Pointer to data
- *
- * @retval  
+ * @param   hqueue [in] Pointer to structure data
+ * @param   data   [in] Pointer to data
  *
  * @note None
  */
@@ -131,13 +145,17 @@ void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue )
 }
 
 /**
- * @brief   ** **
+ * @brief   **Write to buffer disabling the interrupts**
  *
- * 
+ * This function disable the interrupts before writing, 
+ * calls the HIL_QUEUE_Write function and then enable the interrupts. 
+ * The third parameter will indicate which interrupt vector should be disable. 
+ * The value 0xFF will indicate that all interrupts should be disable.
  *
- * @param   data        [in]     Pointer to data
+ * @param   hqueue [in] Pointer to structure data
+ * @param   data   [in] Pointer to data
  *
- * @retval  
+ * @retval  Indicates the state of the queue QUEUE_NOT_OK and QUEUE_OK 
  *
  * @note None
  */
@@ -169,13 +187,17 @@ uint8_t HIL_QUEUE_WriteISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr
 }
 
 /**
- * @brief   ** **
+ * @brief   **Read to buffer disabling the interrupts**
  *
- * 
+ * This function disable the interrupts before reading, 
+ * calls the HIL_QUEUE_Read function and then enable the interrupts. 
+ * The third parameter will indicate which interrupt vector should be disable. 
+ * The value 0xFF will indicate that all interrupts should be disable.
  *
- * @param   data        [in]     Pointer to data
+ * @param   hqueue [in] Pointer to structure data
+ * @param   data   [in] Pointer to data
  *
- * @retval  
+ * @retval  Indicates the state of the queue QUEUE_NOT_OK and QUEUE_OK 
  *
  * @note None
  */
@@ -207,13 +229,17 @@ uint8_t HIL_QUEUE_ReadISR( QUEUE_HandleTypeDef *hqueue, void *data, uint8_t isr 
 }
 
 /**
- * @brief   ** **
+ * @brief   **Check if buffer is empty disabling the interrupts**
  *
- * 
+ * This function disable the interrupts then checks if the buffer is empty
+ * calling the HIL_QUEUE_IsEmpty function and then enable the interrupts. 
+ * The third parameter will indicate which interrupt vector should be disable. 
+ * The value 0xFF will indicate that all interrupts should be disable.
  *
- * @param   data        [in]     Pointer to data
+ * @param   hqueue [in] Pointer to structure data
+ * @param   data   [in] Pointer to data
  *
- * @retval  
+ * @retval  Indicates the state of the queue QUEUE_NOT_OK and QUEUE_OK  
  *
  * @note None
  */
@@ -245,13 +271,15 @@ uint8_t HIL_QUEUE_IsEmptyISR( QUEUE_HandleTypeDef *hqueue, uint8_t isr )
 }
 
 /**
- * @brief   ** **
+ * @brief   **Flush the queue disabling the interrupts**
  *
- * 
+ * This function disable the interrupts then calls the HIL_QUEUE_Flush function 
+ * to restart the values of Head, Tail, Empty and Full and then enabled the interrupts. 
+ * The third parameter will indicate which interrupt vector should be disabled. 
+ * The value 0xFF will indicate that all interrupts should be disabled.
  *
- * @param   data        [in]     Pointer to data
- *
- * @retval  
+ * @param   hqueue [in] Pointer to structure data
+ * @param   data   [in] Pointer to data
  *
  * @note None
  */
