@@ -171,4 +171,18 @@ extern HAL_StatusTypeDef Status;
 /**
   @} */
 
+typedef struct
+{
+    void     *Buffer;  //puntero al espacio de memoria usado como buffer por la cola
+    uint32_t Elements; //numero de elementos a almacenar (tama;o de la cola)
+    uint8_t  Size;     //tamaño del tipo de elementos a almacenar
+    uint32_t Head;     //puntero que indica el siguiente espacio a escribir
+    uint32_t Tail;     //puntero que indica el siguiente espacio a leer
+    uint8_t  Empty;    //bandera que indica si no hay elementos a leer
+    uint8_t  Full;     //bandera que indica si no se puede seguir escribiendo mas elementos
+    //agregar más elementos si se requieren
+}QUEUE_HandleTypeDef;
+
+extern QUEUE_HandleTypeDef hqueue;
+
 #endif
