@@ -116,7 +116,9 @@ extern SPI_HandleTypeDef SpiHandle;
  */
 extern APP_MsgTypeDef ClockMsg;
 
-
+/**
+  * @brief   Structure of errors
+  */
 typedef enum _App_ErrorsCode
 {/* cppcheck-suppress misra-c2012-2.4 ; To supress declaration of variable */
     WWDG_RET_ERROR = 1u,
@@ -171,18 +173,23 @@ extern HAL_StatusTypeDef Status;
 /**
   @} */
 
+/**
+  * @brief   Queue control structure
+  */
 typedef struct
 {
-    void     *Buffer;  //puntero al espacio de memoria usado como buffer por la cola
-    uint32_t Elements; //numero de elementos a almacenar (tama;o de la cola)
-    uint8_t  Size;     //tamaño del tipo de elementos a almacenar
-    uint32_t Head;     //puntero que indica el siguiente espacio a escribir
-    uint32_t Tail;     //puntero que indica el siguiente espacio a leer
-    uint8_t  Empty;    //bandera que indica si no hay elementos a leer
-    uint8_t  Full;     //bandera que indica si no se puede seguir escribiendo mas elementos
-    //agregar más elementos si se requieren
+    void     *Buffer;  /*!< Pointer to memory space use as buffer by Tail                               */
+    uint32_t Elements; /*!< Number of items to store (queue size)                                       */
+    uint8_t  Size;     /*!< Size of the type of elements to store                                       */
+    uint32_t Head;     /*!< Pointer indicating the next space to write                                  */
+    uint32_t Tail;     /*!< Pointer indicating the next space to read                                   */
+    uint8_t  Empty;    /*!< Flag indicating if there are no items to read                               */
+    uint8_t  Full;     /*!< Flag that indicates if it is not possible to continue writing more elements */
 }QUEUE_HandleTypeDef;
 
-extern QUEUE_HandleTypeDef hqueue;
+/**
+ * @brief  Struct type variable to handle te queue
+ */
+extern QUEUE_HandleTypeDef queueHandle;
 
 #endif

@@ -15,6 +15,8 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
 static void Valid_Time( uint8_t *data );
 static void Valid_Date( uint8_t *data );
+static void WeekDay( uint8_t *data );
+
 
 /**
  * @brief  Structure type variable for user CAN initialization
@@ -382,6 +384,8 @@ static void Valid_Date( uint8_t *data )
                 MSGHandler.tm.tm_mon  = data[NUM_2];
                 MSGHandler.tm.tm_yday = data[NUM_3];
                 MSGHandler.tm.tm_year = data[NUM_4];
+
+                WeekDay( &NewMessage[NUM_0] );
             }
             else
             {
@@ -397,6 +401,8 @@ static void Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
+
+            WeekDay( &NewMessage[NUM_0] );
         }
         else if( ( (data[NUM_2] == APRIL) || 
                    (data[NUM_2] == JUNE) || 
@@ -411,6 +417,8 @@ static void Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
+
+            WeekDay( &NewMessage[NUM_0] );
         }
         else if( (data[NUM_2] == JANUARY) || 
                  (data[NUM_2] == MARCH) || 
@@ -427,6 +435,8 @@ static void Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
+
+            WeekDay( &NewMessage[NUM_0] );
         }
         else
         {
@@ -437,6 +447,45 @@ static void Valid_Date( uint8_t *data )
     {
         state_control = STATE_ERROR;
     }
+}
+
+void WeekDay( uint8_t *data )
+{
+    uint32_t dayofweek;
+    uint8_t days;
+    uint8_t month;
+    uint8_t MSyear;
+    uint8_t LSyear;
+    uint8_t correctdays[7] = {0x05, 0x06, 0x00, 0x01, 0x02, 0x03, 0x04};
+    uint16_t year;
+    uint16_t century;
+    uint16_t yearcentury;
+
+    days   = (data[2] >> 4u) & 0x0Fu;
+    days   = (days*10u) + (data[2] & 0x0Fu);
+    month  = (data[3] >> 4u) & 0x0Fu;
+    month  = (month*10u) + (data[3] & 0x0Fu);
+    MSyear = (data[4] >> 4u) & 0x0Fu;
+    MSyear = (MSyear*10u) + (data[4] & 0x0Fu);
+    LSyear = (data[5] >> 4u) & 0x0Fu;
+    LSyear = (LSyear*10u) + (data[5] & 0x0Fu);
+
+    year = ((uint16_t)MSyear*100u) + (uint16_t)LSyear;
+
+    if( month < 3u )
+    {
+        month += 12u;
+        year--;
+    }
+
+    century = year / 100u;
+    yearcentury = year % 100u;
+
+    dayofweek = ((uint32_t)days + ((13u * ((uint32_t)month + 1u))/5u) + yearcentury + ((uint32_t)yearcentury/4u) + ((uint32_t)century/4u) + (5u*(uint32_t)century)) % 7u;
+
+    dayofweek = correctdays[dayofweek];
+    
+    MSGHandler.tm.tm_wday = dayofweek;
 }
 
 /**

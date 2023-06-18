@@ -2,7 +2,10 @@
  * @file    hil_queue.h
  * @brief   **Circular buffer driver**
  *
- *  
+ * This is a driver to implement a circular buffer.
+ * A circular buffer is a data structure that uses 
+ * a fixed-size buffer as if it were connected 
+ * end-to-end (in a circle).
  *
  * @note    None
  */

@@ -46,14 +46,17 @@ void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue )
  *
  * @note None
  */
+/* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 {
     uint8_t ret_state = QUEUE_NOT_OK;
 
     if( (hqueue->Full) == QUEUE_NOT_FULL )
     {
+        /* cppcheck-suppress misra-c2012-11.5 ; Needed to perform writing */
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform writing */
+        (void)memcpy(((uint8_t *)(hqueue->Buffer) + (hqueue->Head)), data, hqueue->Size);
         (hqueue->Head)++;
-        hqueue->Buffer = &data;
         hqueue->Empty = QUEUE_NOT_EMPTY;
         ret_state = QUEUE_OK;
     }
@@ -82,6 +85,7 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
  *
  * @note None
  */
+/* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 {
     uint8_t ret_state = QUEUE_NOT_OK;
@@ -89,7 +93,9 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
     if( (hqueue->Empty) == QUEUE_NOT_EMPTY )
     {
         (hqueue->Tail)++;
-        hqueue->Buffer = &data;
+        /* cppcheck-suppress misra-c2012-11.5 ; Needed to perform reading */
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform reading */
+        (void)memcpy(data, ((uint8_t *)(hqueue->Buffer) + (hqueue->Tail)), hqueue->Size);
         hqueue->Full = QUEUE_NOT_FULL;
         ret_state = QUEUE_OK;
     }
@@ -116,6 +122,7 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
  *
  * @note None
  */
+/* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 {
     if( (hqueue->Head) == (hqueue->Tail) )
@@ -136,6 +143,7 @@ uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
  *
  * @note None
  */
+/* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue )
 {
     hqueue->Head  = INIT_HEAD;
