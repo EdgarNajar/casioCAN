@@ -27,6 +27,13 @@
 /* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue )
 {
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Buffer != NULL), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Elements != NO_DATA), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Size != NO_DATA), QUEUE_PAR_ERROR );
+
     hqueue->Head  = INIT_HEAD;
     hqueue->Tail  = INIT_TAIL;
     hqueue->Empty = QUEUE_EMPTY;
@@ -51,17 +58,22 @@ void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue )
 /* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 {
-    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hqueue->Buffer != NULL), QUEUE_PAR_ERROR );
-    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hqueue->Elements != NO_DATA), QUEUE_PAR_ERROR );
-    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hqueue->Size != NO_DATA), QUEUE_PAR_ERROR );
-    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( data != NULL, QUEUE_PAR_ERROR );
 
     uint8_t ret_state = QUEUE_NOT_OK;
 
+    if ((writeIndx + 1) % N == readIndx)
+    {
+        // buffer is full, avoid overflow
+        return 0;
+    }
     if( (hqueue->Full) == QUEUE_NOT_FULL )
     {
         /* cppcheck-suppress misra-c2012-11.5 ; Needed to perform writing */
@@ -99,6 +111,15 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 /* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 {
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Buffer != NULL), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Elements != NO_DATA), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Size != NO_DATA), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( data != NULL, QUEUE_PAR_ERROR );
+
     uint8_t ret_state = QUEUE_NOT_OK;
 
     if( (hqueue->Empty) == QUEUE_NOT_EMPTY )
@@ -136,6 +157,13 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 /* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 {
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Buffer != NULL), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Elements != NO_DATA), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Size != NO_DATA), QUEUE_PAR_ERROR );
+
     return hqueue->Empty;
 }
 
@@ -152,6 +180,13 @@ uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 /* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue )
 {
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Buffer != NULL), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Elements != NO_DATA), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hqueue->Size != NO_DATA), QUEUE_PAR_ERROR );
+
     HIL_QUEUE_Init( hqueue );
 }
 
