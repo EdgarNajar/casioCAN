@@ -2,10 +2,11 @@
  * @file    hil_queue.c
  * @brief   **Circular buffer driver**
  *
- * This is a driver to implement a circular buffer.
- * A circular buffer is a data structure that uses 
- * a fixed-size buffer as if it were connected 
- * end-to-end (in a circle).
+ * This is a driver to implement a circular buffer, with the help of memcpy function 
+ * from the standard library and void pointers we will handle any type of element for the queue.
+ * The basic principle behind it is very simple, each element of the X type is made up 
+ * of N bytes so we will only have to copy the N bytes that make up each element 
+ * when writing or reading in the queue.
  *
  * @note    None
  */
@@ -23,6 +24,7 @@
  *
  * @note None
  */
+/* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue )
 {
     hqueue->Head  = INIT_HEAD;
@@ -49,6 +51,15 @@ void HIL_QUEUE_Init( QUEUE_HandleTypeDef *hqueue )
 /* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 {
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( (hqueue->Buffer != NULL), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( (hqueue->Elements != NO_DATA), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( (hqueue->Size != NO_DATA), QUEUE_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( data != NULL, QUEUE_PAR_ERROR );
+
     uint8_t ret_state = QUEUE_NOT_OK;
 
     if( (hqueue->Full) == QUEUE_NOT_FULL )
@@ -125,11 +136,6 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 /* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 {
-    if( (hqueue->Head) == (hqueue->Tail) )
-    {
-        hqueue->Empty = QUEUE_EMPTY;
-    }
-
     return hqueue->Empty;
 }
 
@@ -146,10 +152,7 @@ uint8_t HIL_QUEUE_IsEmpty( QUEUE_HandleTypeDef *hqueue )
 /* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 void HIL_QUEUE_Flush( QUEUE_HandleTypeDef *hqueue )
 {
-    hqueue->Head  = INIT_HEAD;
-    hqueue->Tail  = INIT_TAIL;
-    hqueue->Empty = QUEUE_EMPTY;
-    hqueue->Full  = QUEUE_NOT_FULL;
+    HIL_QUEUE_Init( hqueue );
 }
 
 /**

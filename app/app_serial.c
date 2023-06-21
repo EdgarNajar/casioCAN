@@ -358,9 +358,6 @@ static void Valid_Time( uint8_t *data )
  * @param   MSGHandler    [out] Structure type variable to place all data
  * @param   state_control [out] Variable to control state machine
  *
- * @retval  The function returns STATE_OK if the data for day, month and year was correct
- *          and STATE_ERROR if the data was an invalid value
- *
  * @note None
  */
 static void Valid_Date( uint8_t *data )
@@ -449,39 +446,53 @@ static void Valid_Date( uint8_t *data )
     }
 }
 
+/**
+ * @brief   **Validate date**
+ *
+ * This function calculates the day of the week according to the date,
+ * to do this, we will use Zeller's congruence. Taking the day, month and year
+ * to calculate the year of the century and the century. In this algorithm 
+ * January and February are counted as months 13 and 14 of the previous year.
+ * With this data we use the formula for the Gregorian calendar.
+ * 
+ * @param   data          [in]  Pointer to data
+ * @param   MSGHandler    [out] Structure type variable to place all data
+ *
+ * @note None
+ */
 void WeekDay( uint8_t *data )
 {
     uint32_t dayofweek;
-    uint8_t days;
+    uint32_t days;
     uint8_t month;
     uint8_t MSyear;
     uint8_t LSyear;
-    uint8_t correctdays[7] = {0x05, 0x06, 0x00, 0x01, 0x02, 0x03, 0x04};
+    uint8_t correctdays[NUM_7] = {HEX_5, HEX_6, HEX_0, HEX_1, HEX_2, HEX_3, HEX_4};
     uint16_t year;
     uint16_t century;
     uint16_t yearcentury;
 
-    days   = (data[2] >> 4u) & 0x0Fu;
-    days   = (days*10u) + (data[2] & 0x0Fu);
-    month  = (data[3] >> 4u) & 0x0Fu;
-    month  = (month*10u) + (data[3] & 0x0Fu);
-    MSyear = (data[4] >> 4u) & 0x0Fu;
-    MSyear = (MSyear*10u) + (data[4] & 0x0Fu);
-    LSyear = (data[5] >> 4u) & 0x0Fu;
-    LSyear = (LSyear*10u) + (data[5] & 0x0Fu);
+    days   = (data[NUM_2] >> NUM_4) & HEX_0F;
+    days   = (days*NUM_10) + (data[NUM_2] & HEX_0F);
+    month  = (data[NUM_3] >> NUM_4) & HEX_0F;
+    month  = (month*NUM_10) + (data[NUM_3] & HEX_0F);
+    MSyear = (data[NUM_4] >> NUM_4) & HEX_0F;
+    MSyear = (MSyear*NUM_10) + (data[NUM_4] & HEX_0F);
+    LSyear = (data[NUM_5] >> NUM_4) & HEX_0F;
+    LSyear = (LSyear*NUM_10) + (data[NUM_5] & HEX_0F);
 
-    year = ((uint16_t)MSyear*100u) + (uint16_t)LSyear;
+    year = ((uint16_t)MSyear*NUM_100) + (uint16_t)LSyear;
 
-    if( month < 3u )
+    if( month < NUM_3 )
     {
-        month += 12u;
+        month += NUM_12;
         year--;
     }
 
-    century = year / 100u;
-    yearcentury = year % 100u;
+    century = year / NUM_100;
+    yearcentury = year % NUM_100;
 
-    dayofweek = ((uint32_t)days + ((13u * ((uint32_t)month + 1u))/5u) + yearcentury + ((uint32_t)yearcentury/4u) + ((uint32_t)century/4u) + (5u*(uint32_t)century)) % 7u;
+    dayofweek = ((uint32_t)days + ((NUM_13 * ((uint32_t)month + NUM_1))/NUM_5) + yearcentury + ((uint32_t)yearcentury/NUM_4) + ((uint32_t)century/NUM_4) + (NUM_5*(uint32_t)century)) % NUM_7;
 
     dayofweek = correctdays[dayofweek];
     

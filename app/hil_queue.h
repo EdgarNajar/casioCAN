@@ -31,6 +31,7 @@
 #define QUEUE_NOT_EMPTY (uint8_t)0  /*!< Queue not empty     */
 #define INIT_HEAD       (uint8_t)0  /*!< First value of head */
 #define INIT_TAIL       (uint8_t)0  /*!< First value of head */
+#define NO_DATA         (uint8_t)0  /*!< No data receive     */
 /**
   @} */
 
