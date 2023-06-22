@@ -71,10 +71,11 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 
     if( (hqueue->Full) == QUEUE_NOT_FULL )
     {
+        (hqueue->Head)++;
         /* cppcheck-suppress misra-c2012-11.5 ; Needed to perform writing */
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform writing */
         (void)memcpy(((uint8_t *)(hqueue->Buffer) + (hqueue->Head)), data, hqueue->Size);
-        hqueue->Head = ((hqueue->Head)++) % hqueue->Elements;
+        hqueue->Head = (hqueue->Head) % hqueue->Elements;
         ret_state = QUEUE_OK;
     }
     
@@ -122,10 +123,11 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
 
     if( (hqueue->Empty) == QUEUE_NOT_EMPTY )
     {
+        (hqueue->Tail)++;
         /* cppcheck-suppress misra-c2012-11.5 ; Needed to perform reading */
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform reading */
         (void)memcpy(data, ((uint8_t *)(hqueue->Buffer) + (hqueue->Tail)), hqueue->Size);
-        hqueue->Tail = ((hqueue->Tail)++) % hqueue->Elements;
+        hqueue->Tail = (hqueue->Tail) % hqueue->Elements;
         ret_state = QUEUE_OK;
     }
     
