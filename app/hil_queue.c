@@ -69,25 +69,23 @@ uint8_t HIL_QUEUE_Write( QUEUE_HandleTypeDef *hqueue, void *data )
 
     uint8_t ret_state = QUEUE_NOT_OK;
 
-    if ((writeIndx + 1) % N == readIndx)
-    {
-        // buffer is full, avoid overflow
-        return 0;
-    }
     if( (hqueue->Full) == QUEUE_NOT_FULL )
     {
         /* cppcheck-suppress misra-c2012-11.5 ; Needed to perform writing */
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform writing */
         (void)memcpy(((uint8_t *)(hqueue->Buffer) + (hqueue->Head)), data, hqueue->Size);
-        hqueue->Head = hqueue->Elements;
-        hqueue->Empty = QUEUE_NOT_EMPTY;
+        hqueue->Head = ((hqueue->Head)++) % hqueue->Elements;
         ret_state = QUEUE_OK;
     }
     
-    if( (hqueue->Head) == (hqueue->Tail) )
+    if( (hqueue->Empty) == QUEUE_EMPTY )
+    {
+        hqueue->Empty = QUEUE_NOT_EMPTY;
+    }
+
+    if( ((hqueue->Head) == (hqueue->Tail)) && ((hqueue->Head) == (hqueue->Elements)) )
     {
         hqueue->Full = QUEUE_FULL;
-        ret_state = QUEUE_NOT_OK;
     }
 
     return ret_state;
@@ -128,14 +126,17 @@ uint8_t HIL_QUEUE_Read( QUEUE_HandleTypeDef *hqueue, void *data )
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform reading */
         (void)memcpy(data, ((uint8_t *)(hqueue->Buffer) + (hqueue->Tail)), hqueue->Size);
         hqueue->Tail = hqueue->Elements;
-        hqueue->Full = QUEUE_NOT_FULL;
         ret_state = QUEUE_OK;
     }
     
-    if( (hqueue->Head) == (hqueue->Tail) )
+    if( (hqueue->Full) == QUEUE_FULL )
+    {
+        hqueue->Full = QUEUE_NOT_FULL;
+    }
+
+    if( ((hqueue->Head) == (hqueue->Tail)) && ((hqueue->Head) == (hqueue->Elements)) )
     {
         hqueue->Empty = QUEUE_EMPTY;
-        ret_state = QUEUE_NOT_OK;
     }
 
     return ret_state;
