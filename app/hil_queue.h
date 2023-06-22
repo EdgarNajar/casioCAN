@@ -2,10 +2,11 @@
  * @file    hil_queue.h
  * @brief   **Circular buffer driver**
  *
- * This is a driver to implement a circular buffer.
- * A circular buffer is a data structure that uses 
- * a fixed-size buffer as if it were connected 
- * end-to-end (in a circle).
+ * This is a driver to implement a circular buffer, with the help of memcpy function 
+ * from the standard library and void pointers we will handle any type of element for the queue.
+ * The basic principle behind it is very simple, each element of the X type is made up 
+ * of N bytes so we will only have to copy the N bytes that make up each element 
+ * when writing or reading in the queue.
  *
  * @note    None
  */
