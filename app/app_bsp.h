@@ -116,7 +116,9 @@ extern SPI_HandleTypeDef SpiHandle;
  */
 extern APP_MsgTypeDef ClockMsg;
 
-
+/**
+  * @brief   Structure of errors
+  */
 typedef enum _App_ErrorsCode
 {/* cppcheck-suppress misra-c2012-2.4 ; To supress declaration of variable */
     WWDG_RET_ERROR = 1u,
@@ -147,6 +149,7 @@ typedef enum _App_ErrorsCode
     RCC_OSCCON_RET_ERROR,
     RCC_CLOCKCON_RET_ERROR,
     RCC_PERCLKCON_RET_ERROR,
+    QUEUE_PAR_ERROR
 } App_ErrorsCode; /* cppcheck-suppress misra-c2012-2.3 ; To supress declaration of variable */
 
 /** 
@@ -170,5 +173,24 @@ extern HAL_StatusTypeDef Status;
 #define PORTC 0xFF  /*!< Pins 0 to 7 of port C  */
 /**
   @} */
+
+/**
+  * @brief   Queue control structure
+  */
+typedef struct
+{
+    void     *Buffer;  /*!< Pointer to memory space use as buffer by Tail                               */
+    uint32_t Elements; /*!< Number of items to store (queue size)                                       */
+    uint8_t  Size;     /*!< Size of the type of elements to store                                       */
+    uint32_t Head;     /*!< Pointer indicating the next space to write                                  */
+    uint32_t Tail;     /*!< Pointer indicating the next space to read                                   */
+    uint8_t  Empty;    /*!< Flag indicating if there are no items to read                               */
+    uint8_t  Full;     /*!< Flag that indicates if it is not possible to continue writing more elements */
+}QUEUE_HandleTypeDef;
+
+/**
+ * @brief  Struct type variable to handle te queue
+ */
+extern QUEUE_HandleTypeDef queueHandle;
 
 #endif

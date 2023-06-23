@@ -15,6 +15,8 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
 static void Valid_Time( uint8_t *data );
 static void Valid_Date( uint8_t *data );
+static void WeekDay( uint8_t *data );
+
 
 /**
  * @brief  Structure type variable for user CAN initialization
@@ -356,9 +358,6 @@ static void Valid_Time( uint8_t *data )
  * @param   MSGHandler    [out] Structure type variable to place all data
  * @param   state_control [out] Variable to control state machine
  *
- * @retval  The function returns STATE_OK if the data for day, month and year was correct
- *          and STATE_ERROR if the data was an invalid value
- *
  * @note None
  */
 static void Valid_Date( uint8_t *data )
@@ -382,6 +381,8 @@ static void Valid_Date( uint8_t *data )
                 MSGHandler.tm.tm_mon  = data[NUM_2];
                 MSGHandler.tm.tm_yday = data[NUM_3];
                 MSGHandler.tm.tm_year = data[NUM_4];
+
+                WeekDay( &NewMessage[NUM_0] );
             }
             else
             {
@@ -397,6 +398,8 @@ static void Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
+
+            WeekDay( &NewMessage[NUM_0] );
         }
         else if( ( (data[NUM_2] == APRIL) || 
                    (data[NUM_2] == JUNE) || 
@@ -411,6 +414,8 @@ static void Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
+
+            WeekDay( &NewMessage[NUM_0] );
         }
         else if( (data[NUM_2] == JANUARY) || 
                  (data[NUM_2] == MARCH) || 
@@ -427,6 +432,8 @@ static void Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
+
+            WeekDay( &NewMessage[NUM_0] );
         }
         else
         {
@@ -437,6 +444,59 @@ static void Valid_Date( uint8_t *data )
     {
         state_control = STATE_ERROR;
     }
+}
+
+/**
+ * @brief   **Validate date**
+ *
+ * This function calculates the day of the week according to the date,
+ * to do this, we will use Zeller's congruence. Taking the day, month and year
+ * to calculate the year of the century and the century. In this algorithm 
+ * January and February are counted as months 13 and 14 of the previous year.
+ * With this data we use the formula for the Gregorian calendar.
+ * 
+ * @param   data          [in]  Pointer to data
+ * @param   MSGHandler    [out] Structure type variable to place all data
+ *
+ * @note None
+ */
+void WeekDay( uint8_t *data )
+{
+    uint32_t dayofweek;
+    uint32_t days;
+    uint8_t month;
+    uint8_t MSyear;
+    uint8_t LSyear;
+    uint8_t correctdays[NUM_7] = {HEX_5, HEX_6, HEX_0, HEX_1, HEX_2, HEX_3, HEX_4};
+    uint16_t year;
+    uint16_t century;
+    uint16_t yearcentury;
+
+    days   = (data[NUM_2] >> NUM_4) & HEX_0F;
+    days   = (days*NUM_10) + (data[NUM_2] & HEX_0F);
+    month  = (data[NUM_3] >> NUM_4) & HEX_0F;
+    month  = (month*NUM_10) + (data[NUM_3] & HEX_0F);
+    MSyear = (data[NUM_4] >> NUM_4) & HEX_0F;
+    MSyear = (MSyear*NUM_10) + (data[NUM_4] & HEX_0F);
+    LSyear = (data[NUM_5] >> NUM_4) & HEX_0F;
+    LSyear = (LSyear*NUM_10) + (data[NUM_5] & HEX_0F);
+
+    year = ((uint16_t)MSyear*NUM_100) + (uint16_t)LSyear;
+
+    if( month < NUM_3 )
+    {
+        month += NUM_12;
+        year--;
+    }
+
+    century = year / NUM_100;
+    yearcentury = year % NUM_100;
+
+    dayofweek = ((uint32_t)days + ((NUM_13 * ((uint32_t)month + NUM_1))/NUM_5) + yearcentury + ((uint32_t)yearcentury/NUM_4) + ((uint32_t)century/NUM_4) + (NUM_5*(uint32_t)century)) % NUM_7;
+
+    dayofweek = correctdays[dayofweek];
+    
+    MSGHandler.tm.tm_wday = dayofweek;
 }
 
 /**
