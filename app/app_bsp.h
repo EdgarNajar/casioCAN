@@ -62,7 +62,8 @@ typedef enum
     STATE_DATE,      /*!< Date message          */
     STATE_ALARM,     /*!< Alarm message         */
     STATE_OK,        /*!< Message recieve ok    */
-    STATE_ERROR      /*!< Message recieve error */
+    STATE_ERROR,     /*!< Message recieve error */
+    STATE_RECEPTION  /*!< Message recieve error */
 }APP_States;
 
 /** 

@@ -92,6 +92,13 @@
 /**
   @} */
 
+/** 
+  * @defgroup Defines for Queue configuration
+  @{ */
+#define MSG_10 (uint64_t)10      /*!< 10 messages */
+/**
+  @} */
+
 extern void Serial_Init( void );
 extern void Serial_Task( void );
 

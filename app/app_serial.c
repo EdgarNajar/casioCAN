@@ -55,6 +55,16 @@ static uint8_t msgRecieve;
 APP_States state_control = STATE_IDLE;
 
 /**
+ * @brief  To storage the messages from CAN
+ */
+QUEUE_HandleTypeDef CANqueue;
+
+/**
+ * @brief  To storage messages from serial
+ */
+QUEUE_HandleTypeDef SerialQueue;
+
+/**
  * @brief   **Initialize of CAN port**
  *
  * Is the function to initialize all the required to start working with the CAN port 
@@ -128,6 +138,20 @@ void Serial_Init( void )
     Status = HAL_FDCAN_ActivateNotification( &CANHandler, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, VAL_BUFFERINDEXES );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, CAN_ACTNOT_RET_ERROR );
+
+    /* CAN to queue */
+    static uint64_t CAN_buffer[MSG_10];
+    CANqueue.Buffer = CAN_buffer;
+    CANqueue.Elements = MSG_10;
+    CANqueue.Size = sizeof( uint64_t );
+    HIL_QUEUE_Init( &queue );
+
+    /* CAN to queue */
+    static APP_MsgTypeDef Serial_buffer[MSG_10];
+    CANqueue.Buffer = Serial_buffer;
+    CANqueue.Elements = MSG_10;
+    CANqueue.Size = sizeof( APP_MsgTypeDef );
+    HIL_QUEUE_Init( &queue );
 }
 
 /**
@@ -150,20 +174,31 @@ void Serial_Task( void )
     uint8_t i = NUM_0;
     uint8_t msn_error[NUM_1] = {HEX_AA};
     uint8_t msn_ok[NUM_1]    = {HEX_55};
+    uint8_t RxBuffer;
     
     switch ( state_control )
     {
         case STATE_IDLE:
-            if( flagMessage == NUM_1 )
+            flagMessage = NUM_0;
+            break;
+
+        case STATE_RECEPTION:
+            if( HIL_QUEUE_IsEmptyISR( &queue ) == QUEUE_NOT_EMPTY )
             {
-                state_control = STATE_MESSAGE;
+                /*Read the first message*/
+                HIL_QUEUE_ReadISR( &queue, RxBuffer );
+                /*Filter the message to know if is a valid CAN-TP single frame message*/
+                if( CanTp_SingleFrameRx( RxBuffer, &RxSize ) == NUM_1 )
+                {
+                    /*move to next state to process the messae*/
+                    state_control = STATE_MESSAGE;
+                }
             }
             else
             {
+                /*if not message left in the queue mnove to IDLE*/
                 state_control = STATE_IDLE;
             }
-
-            flagMessage = NUM_0;
             break;
         
         case STATE_MESSAGE:
@@ -282,6 +317,8 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         assert_error( Status == HAL_OK, CAN_GETMSG_RET_ERROR );
 
         flagMessage = NUM_1;
+
+        (void)HIL_QUEUE_Write( &queue, NewMessage );
     }
 }
 
@@ -539,7 +576,6 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
  * @param   data        [in]     Pointer to data
  * @param   size        [in]     Size of data
  * @param   msgRecieve  [out]    To verify if there is a new message
- * @param   flagMessage [in/out] Flag to indicate a new message arrive
  * @param   MSGHandler  [out]    Structure type variable to place all data
  * @param   NewMessage  [out]    Variable to storage CAN message
  *
