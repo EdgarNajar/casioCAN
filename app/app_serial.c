@@ -10,16 +10,16 @@
  * @note    None
  */
 #include "app_serial.h"
+#include "hil_queue.h"
 
 static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size );
 static uint8_t CanTp_SingleFrameRx( uint8_t *data, uint8_t *size );
-static void Valid_Time( uint8_t *data );
-static void Valid_Date( uint8_t *data );
-static void WeekDay( uint8_t *data );
-
 static uint8_t Valid_Time( uint8_t *data );
 static uint8_t Valid_Alarm( uint8_t *data );
 static uint8_t Valid_Date( uint8_t *data );
+static void WeekDay( uint8_t *data );
+static void Serial_StMachine( void );
+
 
 /**
  * @brief  Structure type variable for user CAN initialization
@@ -55,12 +55,22 @@ APP_States state_control = STATE_IDLE;
 /**
  * @brief  To storage the messages from CAN
  */
-QUEUE_HandleTypeDef CANqueue;
+static QUEUE_HandleTypeDef CANqueue;
 
 /**
  * @brief  To storage messages from serial
  */
-QUEUE_HandleTypeDef SerialQueue;
+static QUEUE_HandleTypeDef SerialQueue;
+
+/**
+ * @brief  Struct type variable to handle te queue
+ */
+QUEUE_HandleTypeDef queueHandle;
+
+/**
+* @brief  Variable to count the amount of milliseconds for serial task
+*/
+static uint32_t serial_tick;
 
 /**
  * @brief   **Initialize of CAN port**
@@ -137,19 +147,46 @@ void Serial_Init( void )
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, CAN_ACTNOT_RET_ERROR );
 
-    /* CAN to queue */
     static uint64_t CAN_buffer[MSG_10];
-    CANqueue.Buffer = CAN_buffer;
+    CANqueue.Buffer   = CAN_buffer;
     CANqueue.Elements = MSG_10;
-    CANqueue.Size = sizeof( uint64_t );
-    HIL_QUEUE_Init( &queue );
+    CANqueue.Size     = sizeof( uint64_t );
+    HIL_QUEUE_Init( &CANqueue );
 
-    /* CAN to queue */
     static APP_MsgTypeDef Serial_buffer[MSG_10];
-    CANqueue.Buffer = Serial_buffer;
+    CANqueue.Buffer   = Serial_buffer;
     CANqueue.Elements = MSG_10;
-    CANqueue.Size = sizeof( APP_MsgTypeDef );
-    HIL_QUEUE_Init( &queue );
+    CANqueue.Size     = sizeof( APP_MsgTypeDef );
+    HIL_QUEUE_Init( &SerialQueue );
+}
+
+/**
+ * @brief   **Main state machine**
+ *
+ * Is going to implement the state machine in charge of messages processing
+ * after the interruption of CAN is trigger, depending if it is a message of time, 
+ * date and alarm it will be evalate if fits the conditions for every type of data,
+ * then a message will be send to indicate success or error.
+ *
+ * @param   serial_tick    [out] To verify if there is a new message
+ * @param   state_control  [in]  Is used to move in state machine
+ * @param   NewMessage     [out] To storage the message form CAN
+ *
+ * @note None
+ */
+void Serial_Task( void )
+{
+    state_control = STATE_RECEPTION;
+
+    if( ( HAL_GetTick( ) - serial_tick ) >= TEN_MS )
+    {
+        serial_tick = HAL_GetTick( );
+
+        while( state_control != STATE_IDLE )
+        {
+            Serial_StMachine();
+        }
+    }
 }
 
 /**
@@ -166,12 +203,12 @@ void Serial_Init( void )
  *
  * @note None
  */
-void Serial_Task( void )
+void Serial_StMachine( void )
 {
     uint8_t i = NUM_0;
     uint8_t msn_error[NUM_1] = {HEX_AA};
     uint8_t msn_ok[NUM_1]    = {HEX_55};
-    uint8_t RxBuffer;
+    uint8_t RxBuffer[NUM_8];
     
     switch ( state_control )
     {
@@ -179,12 +216,12 @@ void Serial_Task( void )
             break;
 
         case STATE_RECEPTION:
-            if( HIL_QUEUE_IsEmptyISR( &queue ) == QUEUE_NOT_EMPTY )
+            if( HIL_QUEUE_IsEmpty( &CANqueue ) == QUEUE_NOT_EMPTY )
             {
                 /* Read the first message */
-                HIL_QUEUE_ReadISR( &queue, RxBuffer );
+                (void)HIL_QUEUE_Read( &CANqueue, &RxBuffer );
                 /* Filter the message to know if is a valid CAN-TP single frame message */
-                if( CanTp_SingleFrameRx( RxBuffer, &RxSize ) == NUM_1 )
+                if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
                 {
                     /* Move to next state to process the message */
                     state_control = STATE_MESSAGE;
@@ -198,38 +235,33 @@ void Serial_Task( void )
             break;
         
         case STATE_MESSAGE:
-            msgRecieve = CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] );
-            
-            if( msgRecieve == NUM_1 )
+            if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_TIME )
             {
-                if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_TIME )
-                {
-                    state_control = STATE_TIME;
-                }
-                else if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_DATE )
-                {
-                    state_control = STATE_DATE;
-                }
-                else if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_ALARM ) 
-                {
-                    state_control = STATE_ALARM;
-                }
-                else
-                {}
+                state_control = STATE_TIME;
+            }
+            else if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_DATE )
+            {
+                state_control = STATE_DATE;
+            }
+            else if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_ALARM ) 
+            {
+                state_control = STATE_ALARM;
             }
             else if( msgRecieve == (uint8_t)SERIAL_MSG_NONE )
             {
                 state_control = STATE_ERROR;
             }
             else
-            {}
+            {
+                state_control = STATE_ERROR;
+            }
             break;
 
         case STATE_TIME:
             // Check for hours, minutes and seconds
             state_control = STATE_ERROR;
 
-            if( Valid_Time( &NewMessage[NUM_0] == NUM_1 ))
+            if( Valid_Time( &NewMessage[NUM_0] ) == NUM_1 )
             {
                 state_control = STATE_OK;
             }
@@ -239,7 +271,7 @@ void Serial_Task( void )
             // Check for days, months and year
             state_control = STATE_ERROR;
 
-            if( Valid_Date( &NewMessage[NUM_0] ) )
+            if( Valid_Date( &NewMessage[NUM_0] ) == NUM_1 )
             {
                 state_control = STATE_OK;
             }
@@ -249,7 +281,7 @@ void Serial_Task( void )
             // Check for hours and minutes
             state_control = STATE_ERROR;
 
-            if( Valid_Time( &NewMessage[NUM_0] ) )
+            if( Valid_Alarm( &NewMessage[NUM_0] ) == NUM_1 )
             {
                 state_control = STATE_OK;
             }
@@ -326,7 +358,7 @@ void HAL_FDCAN_RxFifo0Callback( FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs
         /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
         assert_error( Status == HAL_OK, CAN_GETMSG_RET_ERROR );
 
-        (void)HIL_QUEUE_Write( &queue, NewMessage );
+        (void)HIL_QUEUE_Write( &CANqueue, NewMessage );
     }
 }
 
@@ -360,7 +392,7 @@ static uint8_t Valid_Time( uint8_t *data )
         MSGHandler.tm.tm_hour = data[NUM_1];
         MSGHandler.tm.tm_min  = data[NUM_2];
         MSGHandler.tm.tm_sec  = data[NUM_3];
-        (void)HIL_QUEUE_Write( &Serialqueue, &MSGHandler );
+        (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
     }
 
     return ret_val;
@@ -394,7 +426,7 @@ static uint8_t Valid_Alarm( uint8_t *data )
         MSGHandler.msg        = data[NUM_0];
         MSGHandler.tm.tm_hour = data[NUM_1];
         MSGHandler.tm.tm_min  = data[NUM_2];
-        (void)HIL_QUEUE_Write( &Serialqueue, &MSGHandler );
+        (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
     }
 
     return ret_val;
@@ -442,7 +474,7 @@ static uint8_t Valid_Date( uint8_t *data )
                 MSGHandler.tm.tm_year = data[NUM_4];
 
                 WeekDay( &NewMessage[NUM_0] );
-                (void)HIL_QUEUE_Write( &Serialqueue, &MSGHandler );
+                (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
             }
             else
             {
@@ -458,9 +490,8 @@ static uint8_t Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
-
             WeekDay( &NewMessage[NUM_0] );
-            (void)HIL_QUEUE_Write( &Serialqueue, &MSGHandler );
+            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
         }
         else if( ( (data[NUM_2] == APRIL) || 
                    (data[NUM_2] == JUNE) || 
@@ -475,9 +506,8 @@ static uint8_t Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
-
             WeekDay( &NewMessage[NUM_0] );
-            (void)HIL_QUEUE_Write( &Serialqueue, &MSGHandler );
+            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
         }
         else if( (data[NUM_2] == JANUARY) || 
                  (data[NUM_2] == MARCH) || 
@@ -494,9 +524,8 @@ static uint8_t Valid_Date( uint8_t *data )
             MSGHandler.tm.tm_mon  = data[NUM_2];
             MSGHandler.tm.tm_yday = data[NUM_3];
             MSGHandler.tm.tm_year = data[NUM_4];
-
             WeekDay( &NewMessage[NUM_0] );
-            (void)HIL_QUEUE_Write( &Serialqueue, &MSGHandler );
+            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
         }
         else
         {
@@ -512,7 +541,7 @@ static uint8_t Valid_Date( uint8_t *data )
 }
 
 /**
- * @brief   **Validate date**
+ * @brief   **Validate the day of the week**
  *
  * This function calculates the day of the week according to the date,
  * to do this, we will use Zeller's congruence. Taking the day, month and year
