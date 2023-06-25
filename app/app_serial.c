@@ -60,7 +60,7 @@ static QUEUE_HandleTypeDef CANqueue;
 /**
  * @brief  To storage messages from serial
  */
-static QUEUE_HandleTypeDef SerialQueue;
+QUEUE_HandleTypeDef SerialQueue;
 
 /**
  * @brief  Struct type variable to handle te queue

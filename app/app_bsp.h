@@ -194,4 +194,9 @@ typedef struct
  */
 extern QUEUE_HandleTypeDef queueHandle;
 
+/**
+ * @brief  To storage messages from serial
+ */
+extern QUEUE_HandleTypeDef SerialQueue;
+
 #endif

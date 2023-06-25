@@ -9,7 +9,9 @@
  * @note    None
  */
 #include "app_clock.h"
+#include "hil_queue.h"
 
+static void Clock_StMachine( void );
 /**
  * @brief  Structure type variable to initialize the RTC
  */
@@ -41,6 +43,16 @@ uint8_t changes = WAIT_MESSAGE;
 uint32_t tick_display;
 
 /**
+ * @brief  To storage messages from clock
+ */
+static QUEUE_HandleTypeDef ClockQueue;
+
+/**
+* @brief  Variable to count the amount of milliseconds for clock task
+*/
+static uint32_t clock_tick;
+
+/**
  * @brief   **RTC peripheral**
  *
  * This function configures and initialize the RTC peripheral
@@ -53,6 +65,8 @@ uint32_t tick_display;
  */
 void Clock_Init( void )
 {
+    clock_tick = HAL_GetTick();
+
     /* Configuration RTC */
     hrtc.Instance             = RTC;
     hrtc.Init.HourFormat      = RTC_HOURFORMAT_24;
@@ -100,6 +114,38 @@ void Clock_Init( void )
     Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, RTC_SETDEFALARM_RET_ERROR );
+
+    static APP_MsgTypeDef Clock_buffer[10];
+    ClockQueue.Buffer   = Clock_buffer;
+    ClockQueue.Elements = 10;
+    ClockQueue.Size     = sizeof( APP_MsgTypeDef );
+    HIL_QUEUE_Init( &ClockQueue );
+}
+
+/**
+ * @brief   ****
+ *
+ * 
+ *
+ * @param   changes      [out]    To control changes in time data
+ * @param   default_data [in/out] To stablish the default data
+ *
+ * @note None
+ */
+
+void Clock_Task( void )
+{
+    changes = CHANGE_RECEPTION;
+
+    if( ( HAL_GetTick( ) - clock_tick ) >= FIFTY_MS )
+    {
+        clock_tick = HAL_GetTick( );
+
+        while( changes != CHANGE_IDLE )
+        {
+            Clock_StMachine();
+        }
+    }
 }
 
 /**
@@ -114,10 +160,32 @@ void Clock_Init( void )
  *
  * @note None
  */
-void Clock_Task( void )
+void Clock_StMachine( void )
 {
     switch( changes )
     {
+        case CHANGE_IDLE:
+            break;
+
+        case CHANGE_RECEPTION:
+            if( HIL_QUEUE_IsEmpty( &SerialQueue ) == QUEUE_NOT_EMPTY )
+            {
+                /* Read the first message */
+                (void)HIL_QUEUE_Read( &SerialQueue, &MSGHandler );
+                /* Filter the message to know if is a valid CAN-TP single frame message */
+                if( MSGHandler.msg != NUM_0 )
+                {
+                    /* Move to next state to process the message */
+                    changes = WAIT_MESSAGE;
+                }
+            }
+            else
+            {
+                /* If not message left in the queue move to IDLE */
+                state_control = CHANGE_IDLE;
+            }
+            break;
+
         case WAIT_MESSAGE:
             if( MSGHandler.msg == CHANGE_TIME )
             {
@@ -203,6 +271,7 @@ void Clock_Task( void )
             ClockMsg.tm.tm_sec  = sTime.Seconds;
 
             ClockMsg.msg = changes;
+            (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
 
             break;
 
