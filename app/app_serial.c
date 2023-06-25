@@ -94,6 +94,7 @@ static uint32_t serial_tick;
  */
 void Serial_Init( void )
 {
+    serial_tick = HAL_GetTick( );
     FDCAN_FilterTypeDef CANFilter;
 
     CANHandler.Instance                  = FDCAN1;
@@ -154,9 +155,9 @@ void Serial_Init( void )
     HIL_QUEUE_Init( &CANqueue );
 
     static APP_MsgTypeDef Serial_buffer[MSG_10];
-    CANqueue.Buffer   = Serial_buffer;
-    CANqueue.Elements = MSG_10;
-    CANqueue.Size     = sizeof( APP_MsgTypeDef );
+    SerialQueue.Buffer   = Serial_buffer;
+    SerialQueue.Elements = MSG_10;
+    SerialQueue.Size     = sizeof( APP_MsgTypeDef );
     HIL_QUEUE_Init( &SerialQueue );
 }
 
@@ -566,14 +567,14 @@ void WeekDay( uint8_t *data )
     uint16_t century;
     uint16_t yearcentury;
 
-    days   = (data[NUM_2] >> NUM_4) & HEX_0F;
-    days   = (days*NUM_10) + (data[NUM_2] & HEX_0F);
-    month  = (data[NUM_3] >> NUM_4) & HEX_0F;
-    month  = (month*NUM_10) + (data[NUM_3] & HEX_0F);
-    MSyear = (data[NUM_4] >> NUM_4) & HEX_0F;
-    MSyear = (MSyear*NUM_10) + (data[NUM_4] & HEX_0F);
-    LSyear = (data[NUM_5] >> NUM_4) & HEX_0F;
-    LSyear = (LSyear*NUM_10) + (data[NUM_5] & HEX_0F);
+    days   = (data[NUM_1] >> NUM_4) & HEX_0F;
+    days   = (days*NUM_10) + (data[NUM_1] & HEX_0F);
+    month  = (data[NUM_2] >> NUM_4) & HEX_0F;
+    month  = (month*NUM_10) + (data[NUM_2] & HEX_0F);
+    MSyear = (data[NUM_3] >> NUM_4) & HEX_0F;
+    MSyear = (MSyear*NUM_10) + (data[NUM_3] & HEX_0F);
+    LSyear = (data[NUM_4] >> NUM_4) & HEX_0F;
+    LSyear = (LSyear*NUM_10) + (data[NUM_4] & HEX_0F);
 
     year = ((uint16_t)MSyear*NUM_100) + (uint16_t)LSyear;
 
@@ -590,7 +591,7 @@ void WeekDay( uint8_t *data )
 
     dayofweek = correctdays[dayofweek];
     
-    MSGHandler.tm.tm_wday = dayofweek;
+    MSGHandler.tm.tm_wday = dayofweek + NUM_1;
 }
 
 /**

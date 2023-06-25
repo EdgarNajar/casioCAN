@@ -95,7 +95,7 @@
 /** 
   * @defgroup Defines for Queue configuration
   @{ */
-#define MSG_10 (uint64_t)10      /*!< 10 messages */
+#define MSG_10 10      /*!< 10 messages */
 /**
   @} */
 
