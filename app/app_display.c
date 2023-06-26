@@ -99,13 +99,13 @@ void Display_Init( void )
  */
 void Display_Task( void )
 {
-    display_lcd = STATE_RECEPTION;
+    display_lcd = DISPLAY_RECEPTION;
 
     if( ( HAL_GetTick( ) - display_tick ) >= HUNDRED_MS )
     {
         display_tick = HAL_GetTick( );
 
-        while( display_lcd != STATE_IDLE )
+        while( display_lcd != DISPLAY_IDLE )
         {
             Display_StMachine();
         }
