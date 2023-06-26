@@ -199,4 +199,9 @@ extern QUEUE_HandleTypeDef queueHandle;
  */
 extern QUEUE_HandleTypeDef SerialQueue;
 
+/**
+ * @brief  To storage messages from clock
+ */
+extern QUEUE_HandleTypeDef ClockQueue;
+
 #endif

@@ -162,16 +162,13 @@ void Serial_Init( void )
 }
 
 /**
- * @brief   **Main state machine**
+ * @brief   **Call of the serial state machine**
  *
- * Is going to implement the state machine in charge of messages processing
- * after the interruption of CAN is trigger, depending if it is a message of time, 
- * date and alarm it will be evalate if fits the conditions for every type of data,
- * then a message will be send to indicate success or error.
+ * This function calls the serial state machine every 10ms
+ * with the help of queues, therefore it won't be execute all the time
  *
  * @param   serial_tick    [out] To verify if there is a new message
  * @param   state_control  [in]  Is used to move in state machine
- * @param   NewMessage     [out] To storage the message form CAN
  *
  * @note None
  */

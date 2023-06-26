@@ -45,7 +45,7 @@ uint32_t tick_display;
 /**
  * @brief  To storage messages from clock
  */
-static QUEUE_HandleTypeDef ClockQueue;
+QUEUE_HandleTypeDef ClockQueue;
 
 /**
 * @brief  Variable to count the amount of milliseconds for clock task
@@ -123,16 +123,16 @@ void Clock_Init( void )
 }
 
 /**
- * @brief   ****
+ * @brief   **Call of the clock state machine**
  *
- * 
+ * This function calls the clock state machine every 50ms
+ * with the help of queues, therefore it won't be execute all the time
  *
  * @param   changes      [out]    To control changes in time data
- * @param   default_data [in/out] To stablish the default data
+ * @param   clock_tick   [in/out] Time to read messages
  *
  * @note None
  */
-
 void Clock_Task( void )
 {
     changes = CHANGE_RECEPTION;
@@ -156,7 +156,9 @@ void Clock_Task( void )
  * to update the calendar and display the new information.
  *
  * @param   changes      [out]    To control changes in time data
- * @param   default_data [in/out] To stablish the default data
+ * @param   tick_display [in/out] Time for display data
+ * @param   SerialQueue  [in/out] To storage messages from serial
+ * @param   MSGHandler   [in/out] Structure type variable for time data
  *
  * @note None
  */
@@ -187,7 +189,7 @@ void Clock_StMachine( void )
             else
             {
                 /* If not message left in the queue move to IDLE */
-                state_control = CHANGE_IDLE;
+                changes = CHANGE_IDLE;
             }
             break;
 
