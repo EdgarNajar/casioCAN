@@ -168,7 +168,12 @@ void Clock_StMachine( void )
             break;
 
         case CHANGE_RECEPTION:
-            if( HIL_QUEUE_IsEmpty( &SerialQueue ) == QUEUE_NOT_EMPTY )
+            if( (HAL_GetTick() - tick_display) >= ONE_SECOND )
+            {
+                tick_display = HAL_GetTick();
+                changes = DISPLAY;
+            }
+            else if( HIL_QUEUE_IsEmpty( &SerialQueue ) == QUEUE_NOT_EMPTY )
             {
                 /* Read the first message */
                 (void)HIL_QUEUE_Read( &SerialQueue, &MSGHandler );
@@ -199,15 +204,10 @@ void Clock_StMachine( void )
             {
                 changes = CHANGE_ALARM;
             }
-            else if( (HAL_GetTick() - tick_display) >= ONE_SECOND )
-            {
-                tick_display = HAL_GetTick();
-                changes = DISPLAY;
-            }
             else
-            {}
-
-            MSGHandler.msg = WAIT_MESSAGE;
+            {
+                changes = CHANGE_IDLE;
+            }
             break;
 
         case CHANGE_TIME:
@@ -246,7 +246,7 @@ void Clock_StMachine( void )
             break;
 
         case DISPLAY:
-            changes = WAIT_MESSAGE;
+            changes = CHANGE_IDLE;
             
             /* Get the RTC current Time */
             Status = HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
@@ -272,7 +272,6 @@ void Clock_StMachine( void )
 
             ClockMsg.msg = changes;
             (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
-
             break;
 
         default :
