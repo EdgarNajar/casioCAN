@@ -11,7 +11,7 @@
 #include "app_clock.h"
 #include "hil_queue.h"
 
-static void Clock_StMachine( void );
+static uint8_t Clock_StMachine( uint8_t data );
 /**
  * @brief  Structure type variable to initialize the RTC
  */
@@ -31,11 +31,6 @@ static RTC_TimeTypeDef  sTime;
  * @brief  Structure type valriable for user RTC alarm initialization
  */
 static RTC_AlarmTypeDef sAlarm;
-
-/**
- * @brief  Variable to control changes in time data
- */
-uint8_t changes = WAIT_MESSAGE;
 
 /**
  * @brief  To store milisecods for display
@@ -128,14 +123,13 @@ void Clock_Init( void )
  * This function calls the clock state machine every 50ms
  * with the help of queues, therefore it won't be execute all the time
  *
- * @param   changes      [out]    To control changes in time data
  * @param   clock_tick   [in/out] Time to read messages
  *
  * @note None
  */
 void Clock_Task( void )
 {
-    changes = CHANGE_RECEPTION;
+    uint8_t changes = CHANGE_RECEPTION;
 
     if( ( HAL_GetTick( ) - clock_tick ) >= FIFTY_MS )
     {
@@ -143,7 +137,7 @@ void Clock_Task( void )
 
         while( changes != CHANGE_IDLE )
         {
-            Clock_StMachine();
+            changes = Clock_StMachine( changes );
         }
     }
 }
@@ -155,15 +149,18 @@ void Clock_Task( void )
  * by default to display it, and wait for new time and date information 
  * to update the calendar and display the new information.
  *
- * @param   changes      [out]    To control changes in time data
+ * @param   data         [out]    Actual state in state machine
  * @param   tick_display [in/out] Time for display data
  * @param   SerialQueue  [in/out] To storage messages from serial
  * @param   MSGHandler   [in/out] Structure type variable for time data
- *
+ * 
+ * @retval  The function return the next state to access
+ * 
  * @note None
  */
-void Clock_StMachine( void )
+uint8_t Clock_StMachine( uint8_t data)
 {
+    uint8_t changes = data;
     switch( changes )
     {
         case CHANGE_IDLE:
@@ -279,4 +276,6 @@ void Clock_StMachine( void )
         default :
             break;
     }
+
+    return changes;
 }

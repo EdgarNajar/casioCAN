@@ -18,7 +18,7 @@ static uint8_t Valid_Time( uint8_t *data );
 static uint8_t Valid_Alarm( uint8_t *data );
 static uint8_t Valid_Date( uint8_t *data );
 static void WeekDay( uint8_t *data );
-static void Serial_StMachine( void );
+static APP_States Serial_StMachine( APP_States state );
 
 
 /**
@@ -46,11 +46,6 @@ static uint8_t NewMessage[NUM_8];
  * @brief  To indicate a new message arrived
  */
 static uint8_t msgRecieve;
-
-/**
- * @brief  Is used to move in state machine
- */
-APP_States state_control = STATE_IDLE;
 
 /**
  * @brief  To storage the messages from CAN
@@ -168,13 +163,12 @@ void Serial_Init( void )
  * with the help of queues, therefore it won't be execute all the time
  *
  * @param   serial_tick    [out] To verify if there is a new message
- * @param   state_control  [in]  Is used to move in state machine
  *
  * @note None
  */
 void Serial_Task( void )
 {
-    state_control = STATE_RECEPTION;
+    APP_States state_control = STATE_RECEPTION;
 
     if( ( HAL_GetTick( ) - serial_tick ) >= TEN_MS )
     {
@@ -182,7 +176,7 @@ void Serial_Task( void )
 
         while( state_control != STATE_IDLE )
         {
-            Serial_StMachine();
+            state_control = Serial_StMachine( state_control );
         }
     }
 }
@@ -196,17 +190,20 @@ void Serial_Task( void )
  * then a message will be send to indicate success or error.
  *
  * @param   msgRecieve     [in]  To verify if there is a new message
- * @param   state_control  [in]  Is used to move in state machine
+ * @param   state          [in]  Actual state in state machine
  * @param   NewMessage     [out] To storage the message form CAN
  *
+ * @retval  The function return the next state to access
+ * 
  * @note None
  */
-void Serial_StMachine( void )
+APP_States Serial_StMachine( APP_States state )
 {
     uint8_t i = NUM_0;
     uint8_t msn_error[NUM_1] = {HEX_AA};
     uint8_t msn_ok[NUM_1]    = {HEX_55};
     uint8_t RxBuffer[NUM_8];
+    APP_States state_control = state;
     
     switch ( state_control )
     {
@@ -330,6 +327,8 @@ void Serial_StMachine( void )
         default :
             break;
     }
+
+    return state_control;
 }
 
 /**

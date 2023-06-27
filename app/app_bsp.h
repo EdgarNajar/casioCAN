@@ -93,16 +93,6 @@ extern APP_MsgTypeDef MSGHandler;
 extern FDCAN_HandleTypeDef CANHandler;
 
 /**
- * @brief  Is used to move in state machine
- */
-extern APP_States state_control;
-
-/**
- * @brief  To determine the type of data that changed
- */
-extern uint8_t changes;
-
-/**
  * @brief  To store milisecods for display
  */
 extern uint32_t tick_display;

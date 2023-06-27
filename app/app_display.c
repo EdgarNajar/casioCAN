@@ -12,7 +12,7 @@
 
 static void Display_TimeString( APP_MsgTypeDef *tm );
 static void Display_DateString( APP_MsgTypeDef *tm );
-static void Display_StMachine( void );
+static uint8_t Display_StMachine( uint8_t data );
 
 /**
  * @brief  Struct type variable to handle the LCD
@@ -30,14 +30,9 @@ APP_MsgTypeDef ClockMsg;
 SPI_HandleTypeDef SpiHandle;
 
 /**
- * @brief  Variable to move in tate machine
- */
-uint8_t display_lcd = DISPLAY_IDLE;
-
-/**
  * @brief  Time to read display
  */
-uint32_t display_tick;
+static uint32_t display_tick;
 
 /**
  * @brief   **Initialization of the LCD**
@@ -93,13 +88,12 @@ void Display_Init( void )
  * with the help of queues, therefore it won't be execute all the time
  *
  * @param   display_tick [out] To verify if there is a new message
- * @param   display_lcd  [in]  Is used to move in state machine
  *
  * @note None
  */
 void Display_Task( void )
 {
-    display_lcd = DISPLAY_RECEPTION;
+    uint8_t display_lcd = DISPLAY_RECEPTION;
 
     if( ( HAL_GetTick( ) - display_tick ) >= HUNDRED_MS )
     {
@@ -107,7 +101,7 @@ void Display_Task( void )
 
         while( display_lcd != DISPLAY_IDLE )
         {
-            Display_StMachine();
+            display_lcd = Display_StMachine( display_lcd );
         }
     }
 }
@@ -117,11 +111,17 @@ void Display_Task( void )
  *
  * Implementation of the state machine in charge of messages processing 
  * from the clock task and display the time and date
+ * 
+ * @param   data  [in]  Actual state in state machine
+ * 
+ * @retval  The function return the next state to access
  *
  * @note  None
  */
-void Display_StMachine( void )
-{    
+uint8_t Display_StMachine( uint8_t data )
+{
+    uint8_t display_lcd = data;
+
     switch( display_lcd )
     {
         case DISPLAY_IDLE:
@@ -161,6 +161,8 @@ void Display_StMachine( void )
         default :
             break;
     }
+
+    return display_lcd;
 }
 
 /**
