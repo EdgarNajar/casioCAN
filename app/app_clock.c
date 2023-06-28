@@ -9,7 +9,9 @@
  * @note    None
  */
 #include "app_clock.h"
+#include "hil_queue.h"
 
+static uint8_t Clock_StMachine( uint8_t data );
 /**
  * @brief  Structure type variable to initialize the RTC
  */
@@ -31,14 +33,19 @@ static RTC_TimeTypeDef  sTime;
 static RTC_AlarmTypeDef sAlarm;
 
 /**
- * @brief  Variable to control changes in time data
- */
-uint8_t changes = WAIT_MESSAGE;
-
-/**
  * @brief  To store milisecods for display
  */
 uint32_t tick_display;
+
+/**
+ * @brief  To storage messages from clock
+ */
+QUEUE_HandleTypeDef ClockQueue;
+
+/**
+* @brief  Variable to count the amount of milliseconds for clock task
+*/
+static uint32_t clock_tick;
 
 /**
  * @brief   **RTC peripheral**
@@ -53,6 +60,8 @@ uint32_t tick_display;
  */
 void Clock_Init( void )
 {
+    clock_tick = HAL_GetTick();
+
     /* Configuration RTC */
     hrtc.Instance             = RTC;
     hrtc.Init.HourFormat      = RTC_HOURFORMAT_24;
@@ -100,6 +109,37 @@ void Clock_Init( void )
     Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, RTC_SETDEFALARM_RET_ERROR );
+
+    static APP_MsgTypeDef Clock_buffer[10];
+    ClockQueue.Buffer   = Clock_buffer;
+    ClockQueue.Elements = 10;
+    ClockQueue.Size     = sizeof( APP_MsgTypeDef );
+    HIL_QUEUE_Init( &ClockQueue );
+}
+
+/**
+ * @brief   **Call of the clock state machine**
+ *
+ * This function calls the clock state machine every 50ms
+ * with the help of queues, therefore it won't be execute all the time
+ *
+ * @param   clock_tick   [in/out] Time to read messages
+ *
+ * @note None
+ */
+void Clock_Task( void )
+{
+    uint8_t changes = CHANGE_RECEPTION;
+
+    if( ( HAL_GetTick( ) - clock_tick ) >= FIFTY_MS )
+    {
+        clock_tick = HAL_GetTick( );
+
+        while( changes != CHANGE_IDLE )
+        {
+            changes = Clock_StMachine( changes );
+        }
+    }
 }
 
 /**
@@ -109,15 +149,47 @@ void Clock_Init( void )
  * by default to display it, and wait for new time and date information 
  * to update the calendar and display the new information.
  *
- * @param   changes      [out]    To control changes in time data
- * @param   default_data [in/out] To stablish the default data
- *
+ * @param   data         [out]    Actual state in state machine
+ * @param   tick_display [in/out] Time for display data
+ * @param   SerialQueue  [in/out] To storage messages from serial
+ * @param   MSGHandler   [in/out] Structure type variable for time data
+ * 
+ * @retval  The function return the next state to access
+ * 
  * @note None
  */
-void Clock_Task( void )
+uint8_t Clock_StMachine( uint8_t data)
 {
+    uint8_t changes = data;
     switch( changes )
     {
+        case CHANGE_IDLE:
+            break;
+
+        case CHANGE_RECEPTION:
+            if( (HAL_GetTick() - tick_display) >= ONE_SECOND )
+            {
+                tick_display = HAL_GetTick();
+                changes = DISPLAY;
+            }
+            else if( HIL_QUEUE_IsEmpty( &SerialQueue ) == QUEUE_NOT_EMPTY )
+            {
+                /* Read the first message */
+                (void)HIL_QUEUE_Read( &SerialQueue, &MSGHandler );
+                /* Filter the message to know if is a valid CAN-TP single frame message */
+                if( MSGHandler.msg != NUM_0 )
+                {
+                    /* Move to next state to process the message */
+                    changes = WAIT_MESSAGE;
+                }
+            }
+            else
+            {
+                /* If not message left in the queue move to IDLE */
+                changes = CHANGE_IDLE;
+            }
+            break;
+
         case WAIT_MESSAGE:
             if( MSGHandler.msg == CHANGE_TIME )
             {
@@ -131,15 +203,10 @@ void Clock_Task( void )
             {
                 changes = CHANGE_ALARM;
             }
-            else if( (HAL_GetTick() - tick_display) >= ONE_SECOND )
-            {
-                tick_display = HAL_GetTick();
-                changes = DISPLAY;
-            }
             else
-            {}
-
-            MSGHandler.msg = WAIT_MESSAGE;
+            {
+                changes = CHANGE_IDLE;
+            }
             break;
 
         case CHANGE_TIME:
@@ -178,7 +245,7 @@ void Clock_Task( void )
             break;
 
         case DISPLAY:
-            changes = WAIT_MESSAGE;
+            changes = CHANGE_IDLE;
             
             /* Get the RTC current Time */
             Status = HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
@@ -203,10 +270,12 @@ void Clock_Task( void )
             ClockMsg.tm.tm_sec  = sTime.Seconds;
 
             ClockMsg.msg = changes;
-
+            (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
             break;
 
         default :
             break;
     }
+
+    return changes;
 }

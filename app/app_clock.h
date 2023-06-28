@@ -16,11 +16,13 @@
 /** 
   * @defgroup Name of states of state machine
   @{ */
-#define WAIT_MESSAGE (uint8_t)0  /*!< State wait message */
-#define CHANGE_TIME  (uint8_t)1  /*!< State change time  */
-#define CHANGE_DATE  (uint8_t)2  /*!< State change date  */
-#define CHANGE_ALARM (uint8_t)3  /*!< State change alarm */
-#define DISPLAY      (uint8_t)4  /*!< State display      */
+#define WAIT_MESSAGE     (uint8_t)0  /*!< State wait message */
+#define CHANGE_TIME      (uint8_t)1  /*!< State change time  */
+#define CHANGE_DATE      (uint8_t)2  /*!< State change date  */
+#define CHANGE_ALARM     (uint8_t)3  /*!< State change alarm */
+#define DISPLAY          (uint8_t)4  /*!< State display      */
+#define CHANGE_IDLE      (uint8_t)5  /*!< State idle         */
+#define CHANGE_RECEPTION (uint8_t)6  /*!< State reception    */
 /**
   @} */
 
@@ -51,7 +53,8 @@
 /** 
   * @defgroup Amount of miliseconds to display
   @{ */
-#define ONE_SECOND (uint8_t)1000  /*!< Define for one second */
+#define ONE_SECOND (uint8_t)1000  /*!< Define for one second    */
+#define FIFTY_MS   50             /*!< Define for 50 miliseconds*/
 /**
   @} */
 

@@ -92,6 +92,20 @@
 /**
   @} */
 
+/** 
+  * @defgroup Defines for Queue configuration
+  @{ */
+#define MSG_10 10      /*!< 10 messages */
+/**
+  @} */
+
+/** 
+  * @defgroup Time for serial task
+  @{ */
+#define TEN_MS (uint32_t)10  /*!< Ten miliseconds */
+/**
+  @} */
+
 extern void Serial_Init( void );
 extern void Serial_Task( void );
 

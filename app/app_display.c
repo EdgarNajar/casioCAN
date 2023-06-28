@@ -8,9 +8,11 @@
  */
 #include "app_display.h"
 #include "hel_lcd.h"
+#include "hil_queue.h"
 
 static void Display_TimeString( APP_MsgTypeDef *tm );
 static void Display_DateString( APP_MsgTypeDef *tm );
+static uint8_t Display_StMachine( uint8_t data );
 
 /**
  * @brief  Struct type variable to handle the LCD
@@ -28,6 +30,11 @@ APP_MsgTypeDef ClockMsg;
 SPI_HandleTypeDef SpiHandle;
 
 /**
+ * @brief  Time to read display
+ */
+static uint32_t display_tick;
+
+/**
  * @brief   **Initialization of the LCD**
  *
  * This function initialize the ports to start working with the LCD and to
@@ -41,6 +48,8 @@ SPI_HandleTypeDef SpiHandle;
  */
 void Display_Init( void )
 {
+    display_tick = HAL_GetTick();
+
     SpiHandle.Instance               = SPI1;
     SpiHandle.Init.Mode              = SPI_MODE_MASTER;
     SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
@@ -73,23 +82,67 @@ void Display_Init( void )
 }
 
 /**
+ * @brief   **Call of the display state machine**
+ *
+ * This function calls the display state machine every 100ms
+ * with the help of queues, therefore it won't be execute all the time
+ *
+ * @param   display_tick [out] To verify if there is a new message
+ *
+ * @note None
+ */
+void Display_Task( void )
+{
+    uint8_t display_lcd = DISPLAY_RECEPTION;
+
+    if( ( HAL_GetTick( ) - display_tick ) >= HUNDRED_MS )
+    {
+        display_tick = HAL_GetTick( );
+
+        while( display_lcd != DISPLAY_IDLE )
+        {
+            display_lcd = Display_StMachine( display_lcd );
+        }
+    }
+}
+
+/**
  * @brief   **Display message processing**
  *
  * Implementation of the state machine in charge of messages processing 
  * from the clock task and display the time and date
+ * 
+ * @param   data  [in]  Actual state in state machine
+ * 
+ * @retval  The function return the next state to access
  *
  * @note  None
  */
-void Display_Task( void )
-{    
-    static uint8_t display_lcd = DISPLAY_IDLE;
+uint8_t Display_StMachine( uint8_t data )
+{
+    uint8_t display_lcd = data;
 
     switch( display_lcd )
     {
         case DISPLAY_IDLE:
-            if( ClockMsg.msg >= DISPLAY_MSG )
+            break;
+
+        case DISPLAY_RECEPTION:
+            if( HIL_QUEUE_IsEmpty( &ClockQueue ) == QUEUE_NOT_EMPTY )
             {
-                display_lcd = DISPLAY_TIME;
+                /* Read the first message */
+                (void)HIL_QUEUE_Read( &ClockQueue, &ClockMsg );
+                /* Filter the message to know if is a valid CAN-TP single frame message */
+                if( ClockMsg.msg != NUM_0 )
+                {
+                    /* Move to next state to process the message */
+                    display_lcd = DISPLAY_TIME;
+                }
+            }
+            else
+            {
+                /* If not message left in the queue move to IDLE */
+                display_lcd = DISPLAY_IDLE;
             }
             break;
 
@@ -108,6 +161,8 @@ void Display_Task( void )
         default :
             break;
     }
+
+    return display_lcd;
 }
 
 /**

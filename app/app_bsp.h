@@ -62,7 +62,8 @@ typedef enum
     STATE_DATE,      /*!< Date message          */
     STATE_ALARM,     /*!< Alarm message         */
     STATE_OK,        /*!< Message recieve ok    */
-    STATE_ERROR      /*!< Message recieve error */
+    STATE_ERROR,     /*!< Message recieve error */
+    STATE_RECEPTION  /*!< Message recieve error */
 }APP_States;
 
 /** 
@@ -90,16 +91,6 @@ extern APP_MsgTypeDef MSGHandler;
  * @brief  Structure type variable for CAN handler
  */
 extern FDCAN_HandleTypeDef CANHandler;
-
-/**
- * @brief  Is used to move in state machine
- */
-extern APP_States state_control;
-
-/**
- * @brief  To determine the type of data that changed
- */
-extern uint8_t changes;
 
 /**
  * @brief  To store milisecods for display
@@ -192,5 +183,15 @@ typedef struct
  * @brief  Struct type variable to handle te queue
  */
 extern QUEUE_HandleTypeDef queueHandle;
+
+/**
+ * @brief  To storage messages from serial
+ */
+extern QUEUE_HandleTypeDef SerialQueue;
+
+/**
+ * @brief  To storage messages from clock
+ */
+extern QUEUE_HandleTypeDef ClockQueue;
 
 #endif
