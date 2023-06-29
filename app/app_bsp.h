@@ -140,7 +140,8 @@ typedef enum _App_ErrorsCode
     RCC_OSCCON_RET_ERROR,
     RCC_CLOCKCON_RET_ERROR,
     RCC_PERCLKCON_RET_ERROR,
-    QUEUE_PAR_ERROR
+    QUEUE_PAR_ERROR,
+    SQUEDULER_PAR_ERROR
 } App_ErrorsCode; /* cppcheck-suppress misra-c2012-2.3 ; To supress declaration of variable */
 
 /** 

@@ -12,17 +12,16 @@
 #include "app_bsp.h"
 
 /** 
-  * @defgroup Initial values to the scheduler
+  * @defgroup Values to the scheduler
   @{ */
-#define INIT_TASK   (uint32_t)0  /*!< Init task value */
-/**
-  @} */
-
 #define NO_TASK    (uint8_t)0   /*!< To indicate there is no task                */
+#define NO_DATA    (uint8_t)0   /*!< To indicate there is no data                */
 #define MULTIPLE   (uint32_t)0  /*!< To indicate the period is a mutiple of tick */
 #define NUM_0      (uint32_t)0  /*!< Number 0                                    */
 #define FALSE      (uint8_t)0   /*!< FALSE                                       */
 #define TRUE       (uint8_t)1   /*!< TRUE                                        */
+/**
+  @} */
 
 /**
   * @brief   Task control block
