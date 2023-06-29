@@ -27,7 +27,7 @@ void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler )
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hscheduler->tasks != NO_DATA), SQUEDULER_PAR_ERROR );
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
-    assert_error( (hscheduler->tasksCount != NO_DATA), SQUEDULER_PAR_ERROR );
+    assert_error( (hscheduler->tasksCount == NO_DATA), SQUEDULER_PAR_ERROR );
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hscheduler->tick != NO_DATA), SQUEDULER_PAR_ERROR );
 }
@@ -98,6 +98,15 @@ uint8_t HIL_SCHEDULER_StopTask( Scheduler_HandleTypeDef *hscheduler, uint32_t ta
 
     uint8_t Task_stopped = FALSE;
 
+    if( ( task > NUM_0 ) && ( task <= NUM_5 ) )
+    {
+        task--;
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to obtain task pointer */
+        (hscheduler->taskPtr) += task;
+        hscheduler->taskPtr->StopStart = NUM_0;
+        Task_stopped = TRUE;
+    }
+
     return Task_stopped;
 }
 
@@ -125,6 +134,15 @@ uint8_t HIL_SCHEDULER_StartTask( Scheduler_HandleTypeDef *hscheduler, uint32_t t
     assert_error( (task != NO_DATA), SQUEDULER_PAR_ERROR );
 
     uint8_t Task_start = FALSE;
+
+    if( ( task > NUM_0 ) && ( task <= NUM_5 ) )
+    {
+        task--;
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to obtain task pointer */
+        (hscheduler->taskPtr) += task;
+        hscheduler->taskPtr->StopStart = NUM_1;
+        Task_start = TRUE;
+    }
 
     return Task_start;
 }
@@ -192,4 +210,31 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
     assert_error( (hscheduler->tasks != NO_DATA), SQUEDULER_PAR_ERROR );
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hscheduler->tick != NO_DATA), SQUEDULER_PAR_ERROR );
+
+    TIM_HandleTypeDef TIM6_Handler = {0};
+    TIM6_Handler.Instance          = TIM6;
+    TIM6_Handler.Init.Prescaler    = 32000;
+    TIM6_Handler.Init.CounterMode  = TIM_COUNTERMODE_UP;
+    TIM6_Handler.Init.Period       = 0xFFFF;
+    HAL_TIM_Base_Init( &TIM6_Handler );
+    HAL_TIM_Base_Start_IT( &TIM6_Handler );
+
+    uint32_t x = 0;
+    uint32_t count;
+
+    while( x != (hscheduler->tasks) )
+    {
+        x++;
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+        (hscheduler->taskPtr) += count;
+        hscheduler->taskPtr->initFunc();
+        count = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
+    }
+
+    while ( 1 )
+    {
+        
+    }
+    
+    
 }
