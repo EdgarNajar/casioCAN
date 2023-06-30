@@ -9,6 +9,14 @@
  */
 #include "hil_scheduler.h"
 
+/** 
+  * @defgroup Defines of numbers
+  @{ */
+#define NUM_0      (uint32_t)0  /*!< Number 0 */
+#define NUM_1      (uint32_t)1  /*!< Number 1 */
+/**
+  @} */
+
 /**
  * @brief   **Initialization of scheduler**
  *
@@ -98,22 +106,16 @@ uint8_t HIL_SCHEDULER_StopTask( Scheduler_HandleTypeDef *hscheduler, uint32_t ta
 
     uint8_t Task_stopped = FALSE;
 
-    if( ( task > NUM_0 ) && ( task <= NUM_5 ) )
+    if( task <= (hscheduler->tasks) )
     {
-        task--;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to obtain task pointer */
-        (hscheduler->taskPtr) += task;
-        hscheduler->taskPtr->StopStart = NUM_0;
+        (hscheduler->taskPtr) += task - NUM_1;
+        hscheduler->taskPtr->StopStart = STOP_TASK;
         Task_stopped = TRUE;
     }
 
     return Task_stopped;
 }
-
-/* Once a task is stopped using the function HIL_SCHEDULER_StopTask, it can be active again 
-using this function. The second parameter indicates the task to be started, which is a number 
-from 1 to n task registered. Number zero is forbidden. the function will return a TRUE if the 
-task was stopped otherwise returns FALSE */
 
 /**
  * @brief   **Start a task**
@@ -135,12 +137,11 @@ uint8_t HIL_SCHEDULER_StartTask( Scheduler_HandleTypeDef *hscheduler, uint32_t t
 
     uint8_t Task_start = FALSE;
 
-    if( ( task > NUM_0 ) && ( task <= NUM_5 ) )
+    if( task <= (hscheduler->tasks) )
     {
-        task--;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to obtain task pointer */
-        (hscheduler->taskPtr) += task;
-        hscheduler->taskPtr->StopStart = NUM_1;
+        (hscheduler->taskPtr) += task - NUM_1;
+        hscheduler->taskPtr->StopStart = START_TASK;
         Task_start = TRUE;
     }
 
@@ -184,12 +185,6 @@ uint8_t HIL_SCHEDULER_PeriodTask( Scheduler_HandleTypeDef *hscheduler, uint32_t 
     return Task_Period;
 }
 
-/* This is the function in charge of running the task init functions one single time 
-and actual run each registered task according to their periodicity in an infinite loop, 
-the function will never return at least something wrong happens, but this will be considered 
-a malfunction. A timer will need to accomplish this purpose, for practical reasons, we can use 
-the Systick Timer and the functions that come with the HAL library to control it. */
-
 /**
  * @brief   **Run the different tasks**
  *
@@ -213,28 +208,44 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
 
     TIM_HandleTypeDef TIM6_Handler = {0};
     TIM6_Handler.Instance          = TIM6;
-    TIM6_Handler.Init.Prescaler    = 32000;
+    TIM6_Handler.Init.Prescaler    = TIM6_PRESCALER;
     TIM6_Handler.Init.CounterMode  = TIM_COUNTERMODE_UP;
-    TIM6_Handler.Init.Period       = 0xFFFF;
+    TIM6_Handler.Init.Period       = TIM6_PERIOD;
     HAL_TIM_Base_Init( &TIM6_Handler );
     HAL_TIM_Base_Start_IT( &TIM6_Handler );
 
-    uint32_t x = 0;
+    uint32_t x = NUM_0;
     uint32_t count;
+
+    count = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
 
     while( x != (hscheduler->tasks) )
     {
         x++;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
-        (hscheduler->taskPtr) += count;
+        (hscheduler->taskPtr) += x;
         hscheduler->taskPtr->initFunc();
-        count = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
     }
 
-    while ( 1 )
+    while( 1 )
     {
-        
+        if( (__HAL_TIM_GET_COUNTER( &TIM6_Handler ) - count) >= (hscheduler->tick) )
+        {
+            count = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
+
+            for( uint8_t i = 0; i < hscheduler->tasks ; i++ )
+            {
+                /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+                (hscheduler->taskPtr) += i;
+
+                if( (hscheduler->taskPtr->elapsed) >= (hscheduler->taskPtr->period) )
+                {
+                        hscheduler->taskPtr->taskFunc();
+                        hscheduler->taskPtr->elapsed = NUM_0;
+                }
+
+                hscheduler->taskPtr->elapsed += hscheduler->tick;
+            }
+        }
     }
-    
-    
 }

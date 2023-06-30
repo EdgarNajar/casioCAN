@@ -26,9 +26,16 @@
 /** 
   * @defgroup Defines of numbers
   @{ */
-#define NUM_0      (uint32_t)0  /*!< Number 0 */
-#define NUM_1      (uint32_t)1  /*!< Number 1 */
-#define NUM_5      (uint32_t)5  /*!< Number 1 */
+#define STOP_TASK      (uint32_t)0  /*!< To indicate a task has been stopped */
+#define START_TASK     (uint32_t)1  /*!< To indicate a task has been started */
+/**
+  @} */
+
+/** 
+  * @defgroup Parameters for TIM6
+  @{ */
+#define TIM6_PRESCALER (uint32_t)32000   /*!< Value of TIM6 prescaler */
+#define TIM6_PERIOD    (uint32_t)0xFFFF  /*!< Value of TIM6 period    */
 /**
   @} */
 
