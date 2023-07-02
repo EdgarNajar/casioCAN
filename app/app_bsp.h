@@ -141,7 +141,12 @@ typedef enum _App_ErrorsCode
     RCC_CLOCKCON_RET_ERROR,
     RCC_PERCLKCON_RET_ERROR,
     QUEUE_PAR_ERROR,
-    SQUEDULER_PAR_ERROR
+    SQUEDULER_PAR_ERROR,
+    SCHEDULER_SERIAL_ERROR,
+    SCHEDULER_CLOCK_ERROR,
+    SCHEDULER_HEARTBEAT_ERROR,
+    SCHEDULER_WWDG_ERROR,
+    SCHEDULER_DISPLAY_ERROR
 } App_ErrorsCode; /* cppcheck-suppress misra-c2012-2.3 ; To supress declaration of variable */
 
 /** 
@@ -194,5 +199,13 @@ extern QUEUE_HandleTypeDef SerialQueue;
  * @brief  To storage messages from clock
  */
 extern QUEUE_HandleTypeDef ClockQueue;
+
+/** 
+  * @defgroup Defines to scheduler
+  @{ */
+#define TASKS_NUMBER   5    /*!< Number of tasks to run */
+#define SCHEDULER_TICK 5    /*!< Tick for the scheduler */
+/**
+  @} */
 
 #endif

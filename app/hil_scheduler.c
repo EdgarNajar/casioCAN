@@ -14,6 +14,7 @@
   @{ */
 #define NUM_0      (uint32_t)0   /*!< Number 0  */
 #define NUM_1      (uint32_t)1   /*!< Number 1  */
+#define NUM_5      (uint32_t)5   /*!< Number 5  */
 #define NUM_10     (uint32_t)10  /*!< Number 10 */
 /**
   @} */
@@ -226,8 +227,8 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
     uint32_t TIM6_count2;
     uint32_t TIM6_count3;
     uint32_t monitor;
-    uint32_t errors[5] = { SCHEDULER_SERIAL_ERROR, SCHEDULER_CLOCK_ERROR, SCHEDULER_HEART_ERROR, 
-                           SCHEDULER_PETH_ERROR, SCHEDULER_DISPLAY_ERROR };
+    uint32_t errors[NUM_5] = { SCHEDULER_SERIAL_ERROR, SCHEDULER_CLOCK_ERROR, SCHEDULER_HEARTBEAT_ERROR, 
+                               SCHEDULER_WWDG_ERROR, SCHEDULER_DISPLAY_ERROR };
 
     count = HAL_GetTick();
 

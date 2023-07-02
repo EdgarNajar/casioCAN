@@ -43,25 +43,17 @@ uint32_t tick_display;
 QUEUE_HandleTypeDef ClockQueue;
 
 /**
-* @brief  Variable to count the amount of milliseconds for clock task
-*/
-static uint32_t clock_tick;
-
-/**
  * @brief   **RTC peripheral**
  *
  * This function configures and initialize the RTC peripheral
  * in 24 hours format and no output signal enble
  *
- * @param   hrtc         [out] Structure type variable used to configure the RTC
- * @param   tick_display [out] To store milisecods for display
+ * @param   hrtc [out] Structure type variable used to configure the RTC
  *
  * @note None
  */
 void Clock_Init( void )
 {
-    clock_tick = HAL_GetTick();
-
     /* Configuration RTC */
     hrtc.Instance             = RTC;
     hrtc.Init.HourFormat      = RTC_HOURFORMAT_24;
@@ -123,22 +115,15 @@ void Clock_Init( void )
  * This function calls the clock state machine every 50ms
  * with the help of queues, therefore it won't be execute all the time
  *
- * @param   clock_tick   [in/out] Time to read messages
- *
  * @note None
  */
 void Clock_Task( void )
 {
     uint8_t changes = CHANGE_RECEPTION;
 
-    if( ( HAL_GetTick( ) - clock_tick ) >= FIFTY_MS )
+    while( changes != CHANGE_IDLE )
     {
-        clock_tick = HAL_GetTick( );
-
-        while( changes != CHANGE_IDLE )
-        {
-            changes = Clock_StMachine( changes );
-        }
+        changes = Clock_StMachine( changes );
     }
 }
 
