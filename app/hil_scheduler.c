@@ -12,8 +12,9 @@
 /** 
   * @defgroup Defines of numbers
   @{ */
-#define NUM_0      (uint32_t)0  /*!< Number 0 */
-#define NUM_1      (uint32_t)1  /*!< Number 1 */
+#define NUM_0      (uint32_t)0   /*!< Number 0  */
+#define NUM_1      (uint32_t)1   /*!< Number 1  */
+#define NUM_10     (uint32_t)10  /*!< Number 10 */
 /**
   @} */
 
@@ -221,6 +222,12 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
 
     uint32_t x = NUM_0;
     uint32_t count;
+    uint32_t TIM6_count1;
+    uint32_t TIM6_count2;
+    uint32_t TIM6_count3;
+    uint32_t monitor;
+    uint32_t errors[5] = { SCHEDULER_SERIAL_ERROR, SCHEDULER_CLOCK_ERROR, SCHEDULER_HEART_ERROR, 
+                           SCHEDULER_PETH_ERROR, SCHEDULER_DISPLAY_ERROR };
 
     count = HAL_GetTick();
 
@@ -233,6 +240,8 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
         (hscheduler->taskPtr) -= x;
         x++;
     }
+
+    TIM6_count1 = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
 
     while( 1 )
     {
@@ -247,6 +256,12 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
 
                 if( ((hscheduler->taskPtr)->elapsed) >= ((hscheduler->taskPtr)->period) )
                 {
+                    TIM6_count2 = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
+                    TIM6_count3 = TIM6_count2 - TIM6_count1;
+                    monitor = (hscheduler->taskPtr)->period + (((hscheduler->taskPtr)->period) / NUM_10);
+                    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+                    assert_error( TIM6_count3 <= monitor, errors[i] );
+                    TIM6_count1 = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
                     (hscheduler->taskPtr)->taskFunc();
                     (hscheduler->taskPtr)->elapsed = NUM_0;
                 }
