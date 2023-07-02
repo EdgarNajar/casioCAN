@@ -46,7 +46,7 @@ typedef struct _task
 {
     uint32_t period;          /*!< How often the task should run in ms */
     uint32_t elapsed;         /*!< The current elapsed time            */
-    uint32_t StopStart;     /*!< Flag to stop or start a task        */
+    uint32_t StopStart;       /*!< Flag to stop or start a task        */
     void (*initFunc)(void);   /*!< Pointer to init task function       */
     void (*taskFunc)(void);   /*!< Pointer to task function            */
 }Task_TypeDef;

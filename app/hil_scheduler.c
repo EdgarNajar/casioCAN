@@ -27,7 +27,6 @@
  *
  * @note None
  */
-/* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler )
 {
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
@@ -58,7 +57,6 @@ void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler )
  * 
  * @note None
  */
-/* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 uint8_t HIL_SCHEDULER_RegisterTask( Scheduler_HandleTypeDef *hscheduler, void (*InitPtr)(void), void (*TaskPtr)(void), uint32_t Period )
 {
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
@@ -75,10 +73,12 @@ uint8_t HIL_SCHEDULER_RegisterTask( Scheduler_HandleTypeDef *hscheduler, void (*
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
         (hscheduler->taskPtr) += (hscheduler->tasksCount);
 
-        hscheduler->taskPtr->elapsed  = NUM_0;
-        hscheduler->taskPtr->initFunc = InitPtr;
-        hscheduler->taskPtr->period   = Period;
-        hscheduler->taskPtr->taskFunc = TaskPtr;
+        (hscheduler->taskPtr)->elapsed  = NUM_0;
+        (hscheduler->taskPtr)->initFunc = InitPtr;
+        (hscheduler->taskPtr)->period   = Period;
+        (hscheduler->taskPtr)->taskFunc = TaskPtr;
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+        (hscheduler->taskPtr) -= (hscheduler->tasksCount);
         (hscheduler->tasksCount)++;
         Task_ID = hscheduler->tasksCount;
     }
@@ -109,8 +109,10 @@ uint8_t HIL_SCHEDULER_StopTask( Scheduler_HandleTypeDef *hscheduler, uint32_t ta
     if( task <= (hscheduler->tasks) )
     {
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to obtain task pointer */
-        (hscheduler->taskPtr) += task - NUM_1;
-        hscheduler->taskPtr->StopStart = STOP_TASK;
+        (hscheduler->taskPtr) += (task - NUM_1);
+        (hscheduler->taskPtr)->StopStart = STOP_TASK;
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+        (hscheduler->taskPtr) -= (task - NUM_1);
         Task_stopped = TRUE;
     }
 
@@ -140,8 +142,10 @@ uint8_t HIL_SCHEDULER_StartTask( Scheduler_HandleTypeDef *hscheduler, uint32_t t
     if( task <= (hscheduler->tasks) )
     {
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to obtain task pointer */
-        (hscheduler->taskPtr) += task - NUM_1;
-        hscheduler->taskPtr->StopStart = START_TASK;
+        (hscheduler->taskPtr) += (task - NUM_1);
+        (hscheduler->taskPtr)->StopStart = START_TASK;
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+        (hscheduler->taskPtr) -= (task - NUM_1);
         Task_start = TRUE;
     }
 
@@ -178,8 +182,10 @@ uint8_t HIL_SCHEDULER_PeriodTask( Scheduler_HandleTypeDef *hscheduler, uint32_t 
     {
         Task_Period = TRUE;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
-        (hscheduler->taskPtr) += task;
-        hscheduler->taskPtr->period = Period;
+        (hscheduler->taskPtr) += (task - NUM_1);
+        (hscheduler->taskPtr)->period = Period;
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+        (hscheduler->taskPtr) -= (task - NUM_1);
     }
 
     return Task_Period;
@@ -196,7 +202,6 @@ uint8_t HIL_SCHEDULER_PeriodTask( Scheduler_HandleTypeDef *hscheduler, uint32_t 
  *
  * @note None
  */
-/* cppcheck-suppress misra-c2012-8.7 ; Will be use in future applications */
 void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
 {
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
@@ -206,7 +211,7 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hscheduler->tick != NO_DATA), SQUEDULER_PAR_ERROR );
 
-    TIM_HandleTypeDef TIM6_Handler = {0};
+    TIM_HandleTypeDef TIM6_Handler = {NUM_0};
     TIM6_Handler.Instance          = TIM6;
     TIM6_Handler.Init.Prescaler    = TIM6_PRESCALER;
     TIM6_Handler.Init.CounterMode  = TIM_COUNTERMODE_UP;
@@ -217,34 +222,38 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
     uint32_t x = NUM_0;
     uint32_t count;
 
-    count = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
+    count = HAL_GetTick();
 
     while( x != (hscheduler->tasks) )
     {
-        x++;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
         (hscheduler->taskPtr) += x;
-        hscheduler->taskPtr->initFunc();
+        (hscheduler->taskPtr)->initFunc();
+        /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+        (hscheduler->taskPtr) -= x;
+        x++;
     }
 
     while( 1 )
     {
-        if( (__HAL_TIM_GET_COUNTER( &TIM6_Handler ) - count) >= (hscheduler->tick) )
+        if( (HAL_GetTick() - count) >= (hscheduler->tick) )
         {
-            count = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
+            count = HAL_GetTick();
 
-            for( uint8_t i = 0; i < hscheduler->tasks ; i++ )
+            for( uint32_t i = 0; i < (hscheduler->tasks) ; i++ )
             {
                 /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
                 (hscheduler->taskPtr) += i;
 
-                if( (hscheduler->taskPtr->elapsed) >= (hscheduler->taskPtr->period) )
+                if( ((hscheduler->taskPtr)->elapsed) >= ((hscheduler->taskPtr)->period) )
                 {
-                        hscheduler->taskPtr->taskFunc();
-                        hscheduler->taskPtr->elapsed = NUM_0;
+                    (hscheduler->taskPtr)->taskFunc();
+                    (hscheduler->taskPtr)->elapsed = NUM_0;
                 }
 
-                hscheduler->taskPtr->elapsed += hscheduler->tick;
+                (hscheduler->taskPtr)->elapsed += hscheduler->tick;
+                /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+                (hscheduler->taskPtr) -= i;
             }
         }
     }
