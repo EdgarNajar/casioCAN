@@ -52,6 +52,17 @@ typedef struct _task
 }Task_TypeDef;
 
 /**
+  * @brief   Timer control structure
+  */
+typedef struct _Timer_TypeDef
+{
+    uint32_t Timeout;          /*!< Timer timeout to decrement and reload when the timer is re-started */
+    uint32_t Count;            /*!< Actual timer decrement count */
+    uint32_t StartFlag;        /*!< Flag to start timer count */
+    void(*callbackPtr)(void);  /*!< Pointer to callback function function */
+} Timer_TypeDef;
+
+/**
   * @brief   Scheduler control structure
   */
 typedef struct _scheduler
@@ -60,6 +71,8 @@ typedef struct _scheduler
     uint32_t tick;          /*!< The time base in ms                 */
     uint32_t tasksCount;    /*!< Internal task counter               */
     Task_TypeDef *taskPtr;  /*!< Pointer to buffer for the TCB tasks */
+    uint32_t timers;        /*!< Number of software timer to use     */
+    Timer_TypeDef *timerPtr /*!< Pointer to buffer timer array       */
 }Scheduler_HandleTypeDef;
 
 extern void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler );
@@ -68,5 +81,11 @@ extern uint8_t HIL_SCHEDULER_StopTask( Scheduler_HandleTypeDef *hscheduler, uint
 extern uint8_t HIL_SCHEDULER_StartTask( Scheduler_HandleTypeDef *hscheduler, uint32_t task );
 extern uint8_t HIL_SCHEDULER_PeriodTask( Scheduler_HandleTypeDef *hscheduler, uint32_t task, uint32_t Period );
 extern void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler );
+
+extern uint8_t HIL_SCHEDULER_RegisterTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timeout, void (*CallbackPtr)(void) );
+extern uint32_t HIL_SCHEDULER_GetTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer );
+extern uint8_t HIL_SCHEDULER_ReloadTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer, uint32_t Timeout );
+extern uint8_t HIL_SCHEDULER_StartTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer );
+extern uint8_t HIL_SCHEDULER_StopTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer );
 
 #endif
