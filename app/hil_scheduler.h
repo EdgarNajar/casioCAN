@@ -15,19 +15,15 @@
 /** 
   * @defgroup Values to the scheduler
   @{ */
-#define NO_TASK    (uint8_t)0   /*!< To indicate there is no task                */
-#define NO_DATA    (uint8_t)0   /*!< To indicate there is no data                */
-#define MULTIPLE   (uint32_t)0  /*!< To indicate the period is a mutiple of tick */
-#define FALSE      (uint8_t)0   /*!< FALSE                                       */
-#define TRUE       (uint8_t)1   /*!< TRUE                                        */
-/**
-  @} */
-
-/** 
-  * @defgroup Defines of numbers
-  @{ */
-#define STOP_TASK      (uint32_t)0  /*!< To indicate a task has been stopped */
-#define START_TASK     (uint32_t)1  /*!< To indicate a task has been started */
+#define NO_TASK      (uint8_t)0   /*!< To indicate there is no task                */
+#define NO_DATA      (uint8_t)0   /*!< To indicate there is no data                */
+#define MULTIPLE     (uint32_t)0  /*!< To indicate the period is a mutiple of tick */
+#define FALSE        (uint8_t)0   /*!< FALSE                                       */
+#define TRUE         (uint8_t)1   /*!< TRUE                                        */
+#define STOP_TASK    (uint32_t)0  /*!< To indicate a task has been stopped         */
+#define START_TASK   (uint32_t)1  /*!< To indicate a task has been started         */
+#define STOP_TIMER   (uint32_t)0  /*!< To indicate a timer has been stopped        */
+#define START_TIMER  (uint32_t)1  /*!< To indicate a timer has been started        */
 /**
   @} */
 
@@ -57,9 +53,9 @@ typedef struct _task
 typedef struct _Timer_TypeDef
 {
     uint32_t Timeout;          /*!< Timer timeout to decrement and reload when the timer is re-started */
-    uint32_t Count;            /*!< Actual timer decrement count */
-    uint32_t StartFlag;        /*!< Flag to start timer count */
-    void(*callbackPtr)(void);  /*!< Pointer to callback function function */
+    uint32_t Count;            /*!< Actual timer decrement count                                       */
+    uint32_t StartFlag;        /*!< Flag to start timer count                                          */
+    void(*callbackPtr)(void);  /*!< Pointer to callback function function                              */
 } Timer_TypeDef;
 
 /**
@@ -67,12 +63,12 @@ typedef struct _Timer_TypeDef
   */
 typedef struct _scheduler
 {
-    uint32_t tasks;         /*!< Number of task to handle            */
-    uint32_t tick;          /*!< The time base in ms                 */
-    uint32_t tasksCount;    /*!< Internal task counter               */
-    Task_TypeDef *taskPtr;  /*!< Pointer to buffer for the TCB tasks */
-    uint32_t timers;        /*!< Number of software timer to use     */
-    Timer_TypeDef *timerPtr /*!< Pointer to buffer timer array       */
+    uint32_t tasks;          /*!< Number of task to handle            */
+    uint32_t tick;           /*!< The time base in ms                 */
+    uint32_t tasksCount;     /*!< Internal task counter               */
+    Task_TypeDef *taskPtr;   /*!< Pointer to buffer for the TCB tasks */
+    uint32_t timers;         /*!< Number of software timer to use     */
+    Timer_TypeDef *timerPtr; /*!< Pointer to buffer timer array       */
 }Scheduler_HandleTypeDef;
 
 extern void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler );
