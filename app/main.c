@@ -41,6 +41,7 @@ int main( void )
 {
     static Scheduler_HandleTypeDef SchedulerHandler;
     Task_TypeDef hTasks[ TASKS_NUMBER ];
+    Timer_TypeDef hTimers[ TIMERS_NUMBER ];
 
     HAL_Init();
 
@@ -48,6 +49,12 @@ int main( void )
     SchedulerHandler.tasks      = TASKS_NUMBER;
     SchedulerHandler.tasksCount = NUM_0;
     SchedulerHandler.tick       = SCHEDULER_TICK;
+
+    SchedulerHandler.timerPtr->Count     = NUM_0;
+    SchedulerHandler.timerPtr->StartFlag = START_TIMER;
+    SchedulerHandler.timerPtr->Timeout   = NUM_0;
+    SchedulerHandler.timers     = TIMERS_NUMBER;
+    SchedulerHandler.timerPtr   = hTimers;
     HIL_SCHEDULER_Init( &SchedulerHandler );
 
     (void)HIL_SCHEDULER_RegisterTask( &SchedulerHandler, Serial_Init, Serial_Task, TEN_MS );

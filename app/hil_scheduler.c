@@ -44,6 +44,10 @@ void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler )
     assert_error( (hscheduler->tasksCount == NO_DATA), SQUEDULER_PAR_ERROR );
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hscheduler->tick != NO_DATA), SQUEDULER_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hscheduler->timerPtr != NULL), SQUEDULER_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hscheduler->timers != NO_DATA), SQUEDULER_PAR_ERROR );
 }
 
 /**
@@ -80,10 +84,11 @@ uint8_t HIL_SCHEDULER_RegisterTask( Scheduler_HandleTypeDef *hscheduler, void (*
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
         (hscheduler->taskPtr) += (hscheduler->tasksCount);
 
-        (hscheduler->taskPtr)->elapsed  = NUM_0;
-        (hscheduler->taskPtr)->initFunc = InitPtr;
-        (hscheduler->taskPtr)->period   = Period;
-        (hscheduler->taskPtr)->taskFunc = TaskPtr;
+        (hscheduler->taskPtr)->elapsed   = NUM_0;
+        (hscheduler->taskPtr)->initFunc  = InitPtr;
+        (hscheduler->taskPtr)->period    = Period;
+        (hscheduler->taskPtr)->taskFunc  = TaskPtr;
+        (hscheduler->taskPtr)->StopStart = TRUE;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
         (hscheduler->taskPtr) -= (hscheduler->tasksCount);
         (hscheduler->tasksCount)++;
@@ -268,13 +273,37 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
                     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
                     assert_error( TIM6_count3 <= monitor, errors[i] );
                     TIM6_count1 = __HAL_TIM_GET_COUNTER( &TIM6_Handler );
-                    (hscheduler->taskPtr)->taskFunc();
-                    (hscheduler->taskPtr)->elapsed = NUM_0;
+                    
+                    if( (hscheduler->taskPtr)->StopStart == TRUE )
+                    {
+                        (hscheduler->taskPtr)->taskFunc();
+                        (hscheduler->taskPtr)->elapsed = NUM_0;
+                    }
                 }
 
                 (hscheduler->taskPtr)->elapsed += hscheduler->tick;
                 /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
                 (hscheduler->taskPtr) -= i;
+            }
+
+            for( uint32_t j = 0; j < (hscheduler->timers) ; j++ )
+            {
+                /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+                (hscheduler->timerPtr) += j;
+
+                if( ((hscheduler->timerPtr)->Count) == NUM_0 )
+                {
+                    (hscheduler->timerPtr)->Count = (hscheduler->timerPtr)->Timeout;
+                    (hscheduler->timerPtr)->callbackPtr();
+                }
+                
+                if( ((hscheduler->timerPtr)->StartFlag) == TRUE )
+                {
+                    (hscheduler->timerPtr)->Count -= (hscheduler->tick);
+                }
+
+                /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
+                (hscheduler->timerPtr) -= j;
             }
         }
     }

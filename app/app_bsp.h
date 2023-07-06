@@ -203,8 +203,9 @@ extern QUEUE_HandleTypeDef ClockQueue;
 /** 
   * @defgroup Defines to scheduler
   @{ */
-#define TASKS_NUMBER   5    /*!< Number of tasks to run */
-#define SCHEDULER_TICK 5    /*!< Tick for the scheduler */
+#define TASKS_NUMBER   5    /*!< Number of tasks to run  */
+#define SCHEDULER_TICK 5    /*!< Tick for the scheduler  */
+#define TIMERS_NUMBER  5    /*!< Number of timers to run */
 /**
   @} */
 
