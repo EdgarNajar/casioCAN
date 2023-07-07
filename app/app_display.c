@@ -30,11 +30,6 @@ APP_MsgTypeDef ClockMsg;
 SPI_HandleTypeDef SpiHandle;
 
 /**
- * @brief  Time to read display
- */
-static uint32_t display_tick;
-
-/**
  * @brief   **Initialization of the LCD**
  *
  * This function initialize the ports to start working with the LCD and to
@@ -48,8 +43,6 @@ static uint32_t display_tick;
  */
 void Display_Init( void )
 {
-    display_tick = HAL_GetTick();
-
     SpiHandle.Instance               = SPI1;
     SpiHandle.Init.Mode              = SPI_MODE_MASTER;
     SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
@@ -87,22 +80,15 @@ void Display_Init( void )
  * This function calls the display state machine every 100ms
  * with the help of queues, therefore it won't be execute all the time
  *
- * @param   display_tick [out] To verify if there is a new message
- *
  * @note None
  */
 void Display_Task( void )
 {
     uint8_t display_lcd = DISPLAY_RECEPTION;
 
-    if( ( HAL_GetTick( ) - display_tick ) >= HUNDRED_MS )
+    while( display_lcd != DISPLAY_IDLE )
     {
-        display_tick = HAL_GetTick( );
-
-        while( display_lcd != DISPLAY_IDLE )
-        {
-            display_lcd = Display_StMachine( display_lcd );
-        }
+        display_lcd = Display_StMachine( display_lcd );
     }
 }
 

@@ -63,11 +63,6 @@ QUEUE_HandleTypeDef SerialQueue;
 QUEUE_HandleTypeDef queueHandle;
 
 /**
-* @brief  Variable to count the amount of milliseconds for serial task
-*/
-static uint32_t serial_tick;
-
-/**
  * @brief   **Initialize of CAN port**
  *
  * Is the function to initialize all the required to start working with the CAN port 
@@ -89,7 +84,6 @@ static uint32_t serial_tick;
  */
 void Serial_Init( void )
 {
-    serial_tick = HAL_GetTick( );
     FDCAN_FilterTypeDef CANFilter;
 
     CANHandler.Instance                  = FDCAN1;
@@ -162,22 +156,15 @@ void Serial_Init( void )
  * This function calls the serial state machine every 10ms
  * with the help of queues, therefore it won't be execute all the time
  *
- * @param   serial_tick    [out] To verify if there is a new message
- *
  * @note None
  */
 void Serial_Task( void )
 {
     APP_States state_control = STATE_RECEPTION;
 
-    if( ( HAL_GetTick( ) - serial_tick ) >= TEN_MS )
+    while( state_control != STATE_IDLE )
     {
-        serial_tick = HAL_GetTick( );
-
-        while( state_control != STATE_IDLE )
-        {
-            state_control = Serial_StMachine( state_control );
-        }
+        state_control = Serial_StMachine( state_control );
     }
 }
 
