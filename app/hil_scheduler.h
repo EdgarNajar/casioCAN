@@ -2,8 +2,13 @@
  * @file    hil_scheduler.h
  * @brief   **Scheduler driver**
  *
- * This file contains a scheduler to set each task periodicity 
- * and ensure each run according to the time established.
+ * This file contains a scheduler to set each task periodicity and ensure 
+ * each one  run according to the time established. The version we will use 
+ * is the Round Robin in wich the tasks run after the other considering a tick 
+ * of time to accomplish each task.
+ * We will make use of functions to initialize the scheduler, to register each task 
+ * with the parameters necessary, to stop and start a task, to keep track of 
+ * the periodicity of the tasks and to start the scheduler and run the tasks.
  * 
  * @note    None
  */
