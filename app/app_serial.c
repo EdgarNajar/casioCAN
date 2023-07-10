@@ -160,10 +160,15 @@ void Serial_Init( void )
  */
 void Serial_Task( void )
 {
-    while( HIL_QUEUE_IsEmptyISR( &SerialQueue, TIM16_FDCAN_IT0_IRQn ) == NUM_0 )
+    while( HIL_QUEUE_IsEmptyISR( &CANqueue, TIM16_FDCAN_IT0_IRQn ) == NUM_0 )
     {
         /*Read the first message*/
-        (void)HIL_QUEUE_ReadISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
+        (void)HIL_QUEUE_ReadISR( &CANqueue, &NewMessage, TIM16_FDCAN_IT0_IRQn );
+
+        if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
+        {
+            MSGHandler.msg = NewMessage[NUM_0];
+        }
         Serial_StMachine();
     }
 }
@@ -189,7 +194,6 @@ void Serial_StMachine( void )
     uint8_t i = NUM_0;
     uint8_t msn_error[NUM_1] = {HEX_AA};
     uint8_t msn_ok[NUM_1]    = {HEX_55};
-    uint8_t RxBuffer[NUM_8];
     uint8_t flag_ok;
     
     switch ( MSGHandler.msg )
@@ -211,8 +215,10 @@ void Serial_StMachine( void )
         
         case STATE_DATE:
             flag_ok = STATE_ERROR;
-            MSGHandler.tm.tm_hour = NewMessage[NUM_1];
-            MSGHandler.tm.tm_min  = NewMessage[NUM_2];
+            MSGHandler.tm.tm_mday = NewMessage[NUM_1];
+            MSGHandler.tm.tm_mon  = NewMessage[NUM_2];
+            MSGHandler.tm.tm_yday = NewMessage[NUM_3];
+            MSGHandler.tm.tm_year = NewMessage[NUM_4];
 
             if( Valid_Date( &NewMessage[NUM_0] ) == NUM_1 )
             {
@@ -225,10 +231,8 @@ void Serial_StMachine( void )
 
         case STATE_ALARM:
             flag_ok = STATE_ERROR;
-            MSGHandler.tm.tm_mday = NewMessage[NUM_1];
-            MSGHandler.tm.tm_mon  = NewMessage[NUM_2];
-            MSGHandler.tm.tm_yday = NewMessage[NUM_3];
-            MSGHandler.tm.tm_year = NewMessage[NUM_4];
+            MSGHandler.tm.tm_hour = NewMessage[NUM_1];
+            MSGHandler.tm.tm_min  = NewMessage[NUM_2];
 
             WeekDay( &NewMessage[NUM_0] );
 
@@ -240,6 +244,7 @@ void Serial_StMachine( void )
 
             (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
             break;
+
         default :
             break;
     }
@@ -534,7 +539,7 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
  * @brief   **CAN-TP single frame format**
  *
  * The function validate if the message received complies with CAN-TP single frame format
- * then eliminates the firs byte and pack the ret of the data to be processed
+ * then eliminates the first byte and pack the rest of the data to be processed
  *
  * @param   data        [in]     Pointer to data
  * @param   size        [in]     Size of data
