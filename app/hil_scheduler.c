@@ -281,7 +281,6 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
                     }
                 }
 
-                (hscheduler->taskPtr)->elapsed += hscheduler->tick;
                 /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
                 (hscheduler->taskPtr) -= i;
             }
