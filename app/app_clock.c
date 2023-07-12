@@ -10,8 +10,10 @@
  */
 #include "app_clock.h"
 #include "hil_queue.h"
+#include "hil_scheduler.h"
 
 static uint8_t Clock_StMachine( uint8_t data );
+
 /**
  * @brief  Structure type variable to initialize the RTC
  */
@@ -33,14 +35,14 @@ static RTC_TimeTypeDef  sTime;
 static RTC_AlarmTypeDef sAlarm;
 
 /**
- * @brief  To store milisecods for display
- */
-uint32_t tick_display;
-
-/**
  * @brief  To storage messages from clock
  */
 QUEUE_HandleTypeDef ClockQueue;
+
+/**
+ * @brief  Struct type variable to handle the scheduler
+ */
+extern Scheduler_HandleTypeDef SchedulerHandler;
 
 /**
  * @brief   **RTC peripheral**
@@ -64,8 +66,6 @@ void Clock_Init( void )
     Status = HAL_RTC_Init( &hrtc );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, RTC_INIT_RET_ERROR );
-
-    tick_display = HAL_GetTick();
 
     /* Setting default time at 23:59:50 in BCD format */
     sTime.Hours   = DEF_HOURS;
@@ -146,15 +146,16 @@ void Clock_Task( void )
 uint8_t Clock_StMachine( uint8_t data)
 {
     uint8_t changes = data;
+
     switch( changes )
     {
         case CHANGE_IDLE:
             break;
 
         case CHANGE_RECEPTION:
-            if( (HAL_GetTick() - tick_display) >= ONE_SECOND )
+            if( HIL_SCHEDULER_GetTimer( &SchedulerHandler, NUM32_1 ) == NUM32_0 )
             {
-                tick_display = HAL_GetTick();
+                (void)HIL_SCHEDULER_StartTimer( &SchedulerHandler, NUM32_1 );
                 changes = DISPLAY;
             }
             else if( HIL_QUEUE_IsEmpty( &SerialQueue ) == QUEUE_NOT_EMPTY )

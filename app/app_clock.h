@@ -53,8 +53,8 @@
 /** 
   * @defgroup Amount of miliseconds to display
   @{ */
-#define ONE_SECOND (uint8_t)1000  /*!< Define for one second    */
-#define FIFTY_MS   50             /*!< Define for 50 miliseconds*/
+#define ONE_SECOND (uint32_t)1000  /*!< Define for one second    */
+#define FIFTY_MS   (uint32_t)50             /*!< Define for 50 miliseconds*/
 /**
   @} */
 
@@ -68,7 +68,5 @@
 
 extern void Clock_Init( void );
 extern void Clock_Task( void );
-
-extern void initialise_monitor_handles(void);
 
 #endif

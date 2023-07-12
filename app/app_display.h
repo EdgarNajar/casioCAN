@@ -52,7 +52,7 @@
 /** 
   * @defgroup Time to read display
   @{ */
-#define HUNDRED_MS 100  /*!< A hundred miliseconds */
+#define HUNDRED_MS (uint32_t)100  /*!< A hundred miliseconds */
 /**
   @} */
 
