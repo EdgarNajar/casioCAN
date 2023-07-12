@@ -20,11 +20,11 @@
 /** 
   * @defgroup Values to the scheduler
   @{ */
-#define NO_TASK      (uint8_t)0   /*!< To indicate there is no task                */
+#define NO_TASK      (uint32_t)0  /*!< To indicate there is no task                */
 #define NO_DATA      (uint8_t)0   /*!< To indicate there is no data                */
 #define MULTIPLE     (uint32_t)0  /*!< To indicate the period is a mutiple of tick */
-#define FALSE        (uint8_t)0   /*!< FALSE                                       */
-#define TRUE         (uint8_t)1   /*!< TRUE                                        */
+#define FALSE        (uint32_t)0  /*!< FALSE                                       */
+#define TRUE         (uint32_t)1  /*!< TRUE                                        */
 #define STOP_TASK    (uint32_t)0  /*!< To indicate a task has been stopped         */
 #define START_TASK   (uint32_t)1  /*!< To indicate a task has been started         */
 #define STOP_TIMER   (uint32_t)0  /*!< To indicate a timer has been stopped        */
@@ -73,6 +73,7 @@ typedef struct _scheduler
     uint32_t tasksCount;     /*!< Internal task counter               */
     Task_TypeDef *taskPtr;   /*!< Pointer to buffer for the TCB tasks */
     uint32_t timers;         /*!< Number of software timer to use     */
+    uint32_t timersCount;    /*!< Internal timers counter             */
     Timer_TypeDef *timerPtr; /*!< Pointer to buffer timer array       */
 }Scheduler_HandleTypeDef;
 

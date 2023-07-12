@@ -44,10 +44,6 @@ void HIL_SCHEDULER_Init( Scheduler_HandleTypeDef *hscheduler )
     assert_error( (hscheduler->tasksCount == NO_DATA), SQUEDULER_PAR_ERROR );
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (hscheduler->tick != NO_DATA), SQUEDULER_PAR_ERROR );
-    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
-    assert_error( (hscheduler->timerPtr != NULL), SQUEDULER_PAR_ERROR );
-    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
-    assert_error( (hscheduler->timers != NO_DATA), SQUEDULER_PAR_ERROR );
 }
 
 /**
@@ -277,10 +273,11 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
                     if( (hscheduler->taskPtr)->StopStart == TRUE )
                     {
                         (hscheduler->taskPtr)->taskFunc();
-                        (hscheduler->taskPtr)->elapsed = NUM_0;
+                        (hscheduler->taskPtr)->elapsed = NUM32_0;
                     }
                 }
 
+                (hscheduler->taskPtr)->elapsed += hscheduler->tick;
                 /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
                 (hscheduler->taskPtr) -= i;
             }
@@ -293,7 +290,11 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
                 if( ((hscheduler->timerPtr)->Count) == NUM_0 )
                 {
                     (hscheduler->timerPtr)->Count = (hscheduler->timerPtr)->Timeout;
-                    (hscheduler->timerPtr)->callbackPtr();
+                    
+                    if( ((hscheduler->timerPtr)->callbackPtr) != NULL )
+                    {
+                        (hscheduler->timerPtr)->callbackPtr();
+                    }
                 }
                 
                 if( ((hscheduler->timerPtr)->StartFlag) == TRUE )
@@ -329,9 +330,7 @@ void HIL_SCHEDULER_Start( Scheduler_HandleTypeDef *hscheduler )
 uint8_t HIL_SCHEDULER_RegisterTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timeout, void (*CallbackPtr)(void) )
 {
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
-    assert_error( (hscheduler->timerPtr != NULL), SQUEDULER_PAR_ERROR );
-    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
-    assert_error( (CallbackPtr != NULL), SQUEDULER_PAR_ERROR );    
+    assert_error( (hscheduler->timerPtr != NULL), SQUEDULER_PAR_ERROR );    
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (Timeout != NO_DATA), SQUEDULER_PAR_ERROR );
 
@@ -340,14 +339,18 @@ uint8_t HIL_SCHEDULER_RegisterTimer( Scheduler_HandleTypeDef *hscheduler, uint32
     if( (Timeout > (hscheduler->tick)) && (Timeout % (hscheduler->tick) == MULTIPLE) )
     {
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
-        (hscheduler->timerPtr) += (hscheduler->timers);
+        (hscheduler->timerPtr) += (hscheduler->timersCount);
 
-        (hscheduler->timerPtr)->callbackPtr  = CallbackPtr;
-        (hscheduler->timerPtr)->Timeout      = Timeout;
+        if (CallbackPtr != NULL)
+        {
+            (hscheduler->timerPtr)->callbackPtr = CallbackPtr;
+        }
+        
+        (hscheduler->timerPtr)->Timeout = Timeout;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
-        (hscheduler->timerPtr) -= (hscheduler->timers);
-        (hscheduler->timers)++;
-        Timer_ID = hscheduler->timers;
+        (hscheduler->timerPtr) -= (hscheduler->timersCount);
+        (hscheduler->timersCount)++;
+        Timer_ID = hscheduler->timersCount;
     }
 
     return Timer_ID;
@@ -368,6 +371,8 @@ uint8_t HIL_SCHEDULER_RegisterTimer( Scheduler_HandleTypeDef *hscheduler, uint32
 uint32_t HIL_SCHEDULER_GetTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer )
 {
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hscheduler->timerPtr != NULL), SQUEDULER_PAR_ERROR ); 
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (Timer != NO_DATA), SQUEDULER_PAR_ERROR );
 
     uint8_t pending_time = FALSE;
@@ -376,7 +381,7 @@ uint32_t HIL_SCHEDULER_GetTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t T
     {
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
         (hscheduler->timerPtr) += (Timer - NUM_1);
-        pending_time = ((hscheduler->timerPtr)->Timeout) - (hscheduler->tick);
+        pending_time = (hscheduler->timerPtr)->Count;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
         (hscheduler->timerPtr) -= (Timer - NUM_1);
     }
@@ -401,6 +406,8 @@ uint32_t HIL_SCHEDULER_GetTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t T
  */
 uint8_t HIL_SCHEDULER_ReloadTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer, uint32_t Timeout )
 {
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hscheduler->timerPtr != NULL), SQUEDULER_PAR_ERROR ); 
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (Timer > NO_DATA) && (Timer <= (hscheduler->timers)), SQUEDULER_PAR_ERROR );
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
@@ -439,6 +446,8 @@ uint8_t HIL_SCHEDULER_ReloadTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t
 uint8_t HIL_SCHEDULER_StartTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer )
 {
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( ((hscheduler->timerPtr) != NULL), SQUEDULER_PAR_ERROR );
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (Timer > NO_DATA), SQUEDULER_PAR_ERROR );
 
     uint8_t start_timer = FALSE;
@@ -448,6 +457,7 @@ uint8_t HIL_SCHEDULER_StartTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t 
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to obtain task pointer */
         (hscheduler->timerPtr) += (Timer - NUM_1);
         (hscheduler->timerPtr)->StartFlag = START_TIMER;
+        (hscheduler->timerPtr)->Count     = (hscheduler->timerPtr)->Timeout;
         /* cppcheck-suppress misra-c2012-18.4 ; Needed to perform count */
         (hscheduler->timerPtr) -= (Timer - NUM_1);
         start_timer = TRUE;
@@ -472,6 +482,8 @@ uint8_t HIL_SCHEDULER_StartTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t 
  */
 uint8_t HIL_SCHEDULER_StopTimer( Scheduler_HandleTypeDef *hscheduler, uint32_t Timer )
 {
+    /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
+    assert_error( (hscheduler->timerPtr != NULL), SQUEDULER_PAR_ERROR ); 
     /* cppcheck-suppress misra-c2012-11.8 ; Needed to the macro to detect erros */
     assert_error( (Timer > NO_DATA), SQUEDULER_PAR_ERROR );
 
