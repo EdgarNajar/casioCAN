@@ -30,6 +30,11 @@ static WWDG_HandleTypeDef hwwdg;
 HAL_StatusTypeDef Status;
 
 /**
+ * @brief  Struct type variable to handle the scheduler
+ */
+Scheduler_HandleTypeDef SchedulerHandler;
+
+/**
  * @brief   **Implementation of the main program**
  *
  * Contains the calls to all the functions nedded to run the clock
@@ -39,16 +44,23 @@ HAL_StatusTypeDef Status;
  */
 int main( void )
 {
-    static Scheduler_HandleTypeDef SchedulerHandler;
     Task_TypeDef hTasks[ TASKS_NUMBER ];
+    Timer_TypeDef hTimers[ TIMERS_NUMBER ];
+    uint32_t timer;
 
     HAL_Init();
 
     SchedulerHandler.taskPtr    = hTasks;
     SchedulerHandler.tasks      = TASKS_NUMBER;
-    SchedulerHandler.tasksCount = NUM_0;
+    SchedulerHandler.tasksCount = NUM32_0;
     SchedulerHandler.tick       = SCHEDULER_TICK;
     HIL_SCHEDULER_Init( &SchedulerHandler );
+
+    SchedulerHandler.timersCount = NUM32_0;
+    SchedulerHandler.timers      = TIMERS_NUMBER;
+    SchedulerHandler.timerPtr    = hTimers;
+    timer = HIL_SCHEDULER_RegisterTimer( &SchedulerHandler, ONE_SECOND, NULL );
+    (void)HIL_SCHEDULER_StartTimer( &SchedulerHandler, timer );
 
     (void)HIL_SCHEDULER_RegisterTask( &SchedulerHandler, Serial_Init, Serial_Task, TEN_MS );
     (void)HIL_SCHEDULER_RegisterTask( &SchedulerHandler, Clock_Init, Clock_Task, FIFTY_MS );

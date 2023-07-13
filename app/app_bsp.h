@@ -186,7 +186,7 @@ typedef struct
 }QUEUE_HandleTypeDef;
 
 /**
- * @brief  Struct type variable to handle te queue
+ * @brief  Struct type variable to handle the queue
  */
 extern QUEUE_HandleTypeDef queueHandle;
 
@@ -203,8 +203,11 @@ extern QUEUE_HandleTypeDef ClockQueue;
 /** 
   * @defgroup Defines to scheduler
   @{ */
-#define TASKS_NUMBER   5    /*!< Number of tasks to run */
-#define SCHEDULER_TICK 5    /*!< Tick for the scheduler */
+#define TASKS_NUMBER   (uint32_t)5    /*!< Number of tasks to run  */
+#define SCHEDULER_TICK (uint32_t)5    /*!< Tick for the scheduler  */
+#define TIMERS_NUMBER  (uint32_t)1    /*!< Number of timers to run */
+#define NUM32_0        (uint32_t)0    /*!< Number 0, 32 bits       */
+#define NUM32_1        (uint32_t)1    /*!< Number 1, 32 bits       */
 /**
   @} */
 
