@@ -182,11 +182,8 @@ void Serial_Task( void )
  * then a message will be send to indicate success or error.
  *
  * @param   msgRecieve     [in]  To verify if there is a new message
- * @param   state          [in]  Actual state in state machine
  * @param   NewMessage     [out] To storage the message form CAN
  *
- * @retval  The function return the next state to access
- * 
  * @note None
  */
 void Serial_StMachine( void )

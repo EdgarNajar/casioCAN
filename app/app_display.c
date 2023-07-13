@@ -9,10 +9,11 @@
 #include "app_display.h"
 #include "hel_lcd.h"
 #include "hil_queue.h"
+#include "hil_scheduler.h"
 
 static void Display_TimeString( APP_MsgTypeDef *tm );
 static void Display_DateString( APP_MsgTypeDef *tm );
-static uint8_t Display_StMachine( uint8_t data );
+static void Display_StMachine( void );
 
 /**
  * @brief  Struct type variable to handle the LCD
@@ -84,11 +85,11 @@ void Display_Init( void )
  */
 void Display_Task( void )
 {
-    uint8_t display_lcd = DISPLAY_RECEPTION;
-
-    while( display_lcd != DISPLAY_IDLE )
+    while( HIL_QUEUE_IsEmptyISR( &ClockQueue, SPI1_IRQn ) == NUM_0 )
     {
-        display_lcd = Display_StMachine( display_lcd );
+        /*Read the first message*/
+        (void)HIL_QUEUE_ReadISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+        Display_StMachine();
     }
 }
 
@@ -98,57 +99,13 @@ void Display_Task( void )
  * Implementation of the state machine in charge of messages processing 
  * from the clock task and display the time and date
  * 
- * @param   data  [in]  Actual state in state machine
- * 
- * @retval  The function return the next state to access
- *
  * @note  None
  */
-uint8_t Display_StMachine( uint8_t data )
+void Display_StMachine( void )
 {
-    uint8_t display_lcd = data;
+    Display_TimeString( &ClockMsg );
 
-    switch( display_lcd )
-    {
-        case DISPLAY_IDLE:
-            break;
-
-        case DISPLAY_RECEPTION:
-            if( HIL_QUEUE_IsEmpty( &ClockQueue ) == QUEUE_NOT_EMPTY )
-            {
-                /* Read the first message */
-                (void)HIL_QUEUE_Read( &ClockQueue, &ClockMsg );
-                /* Filter the message to know if is a valid CAN-TP single frame message */
-                if( ClockMsg.msg != NUM_0 )
-                {
-                    /* Move to next state to process the message */
-                    display_lcd = DISPLAY_TIME;
-                }
-            }
-            else
-            {
-                /* If not message left in the queue move to IDLE */
-                display_lcd = DISPLAY_IDLE;
-            }
-            break;
-
-        case DISPLAY_TIME:
-            display_lcd = DISPLAY_DATE;
-            
-            Display_TimeString( &ClockMsg );
-            break;
-
-        case DISPLAY_DATE:
-            display_lcd = DISPLAY_IDLE;
-
-            Display_DateString( &ClockMsg );
-            break;
-
-        default :
-            break;
-    }
-
-    return display_lcd;
+    Display_DateString( &ClockMsg );
 }
 
 /**
@@ -163,7 +120,7 @@ uint8_t Display_StMachine( uint8_t data )
  */
 static void Display_TimeString( APP_MsgTypeDef *tm )
 {
-    char buffer_time[NUM_8];
+    char buffer_time[NUM_12];
 
     buffer_time[NUM_0] = (tm->tm.tm_hour / NUM_10) + (uint8_t)'0';
     buffer_time[NUM_1] = (tm->tm.tm_hour % NUM_10) + (uint8_t)'0';
@@ -173,6 +130,11 @@ static void Display_TimeString( APP_MsgTypeDef *tm )
     buffer_time[NUM_5] = ':';
     buffer_time[NUM_6] = (tm->tm.tm_sec / NUM_10) + (uint8_t)'0';
     buffer_time[NUM_7] = (tm->tm.tm_sec % NUM_10) + (uint8_t)'0';
+    buffer_time[NUM_8] = ' ';
+    buffer_time[NUM_9] = ' ';
+    buffer_time[NUM_10] = ' ';
+    buffer_time[NUM_11] = ' ';
+    buffer_time[NUM_12] = ' ';
 
     Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_3 );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
@@ -217,6 +179,7 @@ static void Display_DateString( APP_MsgTypeDef *tm )
     buffer_date[NUM_12] = *days_w[(tm->tm.tm_wday)-(uint32_t)1];
     /* cppcheck-suppress misra-c2012-18.4 ; Nedded to move trough pointer */
     buffer_date[NUM_13] = *(days_w[(tm->tm.tm_wday)-(uint32_t)1]+(uint32_t)1);
+    buffer_date[NUM_14] = ' ';
 
     Status = HEL_LCD_SetCursor( &hlcd, ROW_ONE, COL_1 );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
