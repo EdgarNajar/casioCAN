@@ -120,7 +120,7 @@ void Display_StMachine( void )
  */
 static void Display_TimeString( APP_MsgTypeDef *tm )
 {
-    char buffer_time[NUM_12];
+    char buffer_time[NUM_14];
 
     buffer_time[NUM_0] = (tm->tm.tm_hour / NUM_10) + (uint8_t)'0';
     buffer_time[NUM_1] = (tm->tm.tm_hour % NUM_10) + (uint8_t)'0';
@@ -160,7 +160,7 @@ static void Display_DateString( APP_MsgTypeDef *tm )
     
     char *months[NUM_12] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
 
-    char *days_w[NUM_7] = { "MO", "TU", "WE", "TH", "FR", "SA", "SU" };
+    char *days_w[NUM_7] = { "MO ", "TU ", "WE ", "TH ", "FR ", "SA ", "SU " };
 
     for( uint8_t i = NUM_0; i < NUM_3; i++)
     {
@@ -179,7 +179,6 @@ static void Display_DateString( APP_MsgTypeDef *tm )
     buffer_date[NUM_12] = *days_w[(tm->tm.tm_wday)-(uint32_t)1];
     /* cppcheck-suppress misra-c2012-18.4 ; Nedded to move trough pointer */
     buffer_date[NUM_13] = *(days_w[(tm->tm.tm_wday)-(uint32_t)1]+(uint32_t)1);
-    buffer_date[NUM_14] = ' ';
 
     Status = HEL_LCD_SetCursor( &hlcd, ROW_ONE, COL_1 );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */

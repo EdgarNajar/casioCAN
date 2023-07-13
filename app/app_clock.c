@@ -115,15 +115,25 @@ void Clock_Init( void )
  * This function calls the clock state machine every 50ms
  * with the help of queues, therefore it won't be execute all the time
  *
+ * @param   SerialQueue  [in/out] To storage messages from serial
+ * @param   MSGHandler   [in/out] Structure type variable for time data
+ * 
  * @note None
  */
 void Clock_Task( void )
 {
-    uint8_t changes = CHANGE_RECEPTION;
+    uint8_t display;
 
-    while( changes != CHANGE_IDLE )
+    while( HIL_QUEUE_IsEmptyISR( &SerialQueue, RTC_TAMP_IRQn ) == NUM_0 )
     {
-        changes = Clock_StMachine( changes );
+        /*Read the first message*/
+        (void)HIL_QUEUE_ReadISR( &SerialQueue, &MSGHandler, RTC_TAMP_IRQn );
+        display = Clock_StMachine( MSGHandler.msg );
+
+        if( display == NUM_1 )
+        {
+            Change_Display();
+        }
     }
 }
 
@@ -135,8 +145,6 @@ void Clock_Task( void )
  * to update the calendar and display the new information.
  *
  * @param   data         [out]    Actual state in state machine
- * @param   tick_display [in/out] Time for display data
- * @param   SerialQueue  [in/out] To storage messages from serial
  * @param   MSGHandler   [in/out] Structure type variable for time data
  * 
  * @retval  The function return the next state to access
@@ -145,58 +153,12 @@ void Clock_Task( void )
  */
 uint8_t Clock_StMachine( uint8_t data)
 {
-    uint8_t changes = data;
+    uint8_t flag_default = NUM_0;
 
-    switch( changes )
+    switch( MSGHandler.msg )
     {
-        case CHANGE_IDLE:
-            break;
-
-        case CHANGE_RECEPTION:
-            if( HIL_SCHEDULER_GetTimer( &SchedulerHandler, NUM32_1 ) == NUM32_0 )
-            {
-                (void)HIL_SCHEDULER_StartTimer( &SchedulerHandler, NUM32_1 );
-                changes = DISPLAY;
-            }
-            else if( HIL_QUEUE_IsEmpty( &SerialQueue ) == QUEUE_NOT_EMPTY )
-            {
-                /* Read the first message */
-                (void)HIL_QUEUE_Read( &SerialQueue, &MSGHandler );
-                /* Filter the message to know if is a valid CAN-TP single frame message */
-                if( MSGHandler.msg != NUM_0 )
-                {
-                    /* Move to next state to process the message */
-                    changes = WAIT_MESSAGE;
-                }
-            }
-            else
-            {
-                /* If not message left in the queue move to IDLE */
-                changes = CHANGE_IDLE;
-            }
-            break;
-
-        case WAIT_MESSAGE:
-            if( MSGHandler.msg == CHANGE_TIME )
-            {
-                changes = CHANGE_TIME;
-            }
-            else if( MSGHandler.msg == CHANGE_DATE )
-            {
-                changes = CHANGE_DATE;
-            }
-            else if( MSGHandler.msg == CHANGE_ALARM )
-            {
-                changes = CHANGE_ALARM;
-            }
-            else
-            {
-                changes = CHANGE_IDLE;
-            }
-            break;
-
         case CHANGE_TIME:
-            changes = DISPLAY;            
+            flag_default = NUM_1;
             /* Setting time in BCD format */
             sTime.Hours   = MSGHandler.tm.tm_hour;
             sTime.Minutes = MSGHandler.tm.tm_min;
@@ -207,8 +169,7 @@ uint8_t Clock_StMachine( uint8_t data)
             break;
 
         case CHANGE_DATE:
-            changes = DISPLAY;
-            
+            flag_default = NUM_1;
             /* Setting date in BCD format */
             sDate.WeekDay = MSGHandler.tm.tm_wday;
             sDate.Month   = MSGHandler.tm.tm_mon;
@@ -221,8 +182,7 @@ uint8_t Clock_StMachine( uint8_t data)
             break;
 
         case CHANGE_ALARM:
-            changes = DISPLAY;
-
+            flag_default = NUM_1;
             sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_hour;
             sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_min;
             Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
@@ -230,38 +190,47 @@ uint8_t Clock_StMachine( uint8_t data)
             assert_error( Status == HAL_OK, RTC_SETALARM_RET_ERROR );
             break;
 
-        case DISPLAY:
-            changes = CHANGE_IDLE;
-            
-            /* Get the RTC current Time */
-            Status = HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
-            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_GETTIME_RET_ERROR );
-            /* Get the RTC current Date */
-            Status = HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
-            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_GETDATE_RET_ERROR );
-            /* Get the RTC current Alarm */
-            Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
-            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-            assert_error( Status == HAL_OK, RTC_GETALARM_RET_ERROR );
-
-            ClockMsg.tm.tm_mday = sDate.Date;
-            ClockMsg.tm.tm_mon  = sDate.Month;
-            ClockMsg.tm.tm_year = sDate.Year;
-            ClockMsg.tm.tm_wday = sDate.WeekDay;
-
-            ClockMsg.tm.tm_hour = sTime.Hours;
-            ClockMsg.tm.tm_min  = sTime.Minutes;
-            ClockMsg.tm.tm_sec  = sTime.Seconds;
-
-            ClockMsg.msg = changes;
-            (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
-            break;
-
         default :
             break;
     }
 
-    return changes;
+    return flag_default;
+}
+
+/**
+ * @brief   **Change the display**
+ *
+ * This function will get the time, data and alarm
+ * and assin it to thestructure ClockMsg to be display
+ *
+ * @param   ClockMsg     [in/out] Structure type variable for time data
+ * 
+ * @note None
+ */
+void Change_Display( void )
+{
+    /* Get the RTC current Time */
+    Status = HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, RTC_GETTIME_RET_ERROR );
+    /* Get the RTC current Date */
+    Status = HAL_RTC_GetDate( &hrtc, &sDate, RTC_FORMAT_BIN );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, RTC_GETDATE_RET_ERROR );
+    /* Get the RTC current Alarm */
+    Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
+    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    assert_error( Status == HAL_OK, RTC_GETALARM_RET_ERROR );
+
+    ClockMsg.tm.tm_mday = sDate.Date;
+    ClockMsg.tm.tm_mon  = sDate.Month;
+    ClockMsg.tm.tm_year = sDate.Year;
+    ClockMsg.tm.tm_wday = sDate.WeekDay;
+
+    ClockMsg.tm.tm_hour = sTime.Hours;
+    ClockMsg.tm.tm_min  = sTime.Minutes;
+    ClockMsg.tm.tm_sec  = sTime.Seconds;
+
+    ClockMsg.msg = MSGHandler.msg;
+    (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
 }

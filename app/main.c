@@ -59,7 +59,7 @@ int main( void )
     SchedulerHandler.timersCount = NUM32_0;
     SchedulerHandler.timers      = TIMERS_NUMBER;
     SchedulerHandler.timerPtr    = hTimers;
-    timer = HIL_SCHEDULER_RegisterTimer( &SchedulerHandler, ONE_SECOND, NULL );
+    timer = HIL_SCHEDULER_RegisterTimer( &SchedulerHandler, ONE_SECOND, Change_Display );
     (void)HIL_SCHEDULER_StartTimer( &SchedulerHandler, timer );
 
     (void)HIL_SCHEDULER_RegisterTask( &SchedulerHandler, Serial_Init, Serial_Task, TEN_MS );
