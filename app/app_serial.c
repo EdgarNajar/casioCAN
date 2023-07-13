@@ -219,6 +219,7 @@ void Serial_StMachine( void )
             MSGHandler.tm.tm_mon  = NewMessage[NUM_2];
             MSGHandler.tm.tm_yday = NewMessage[NUM_3];
             MSGHandler.tm.tm_year = NewMessage[NUM_4];
+            WeekDay( &NewMessage[NUM_0] );
 
             if( Valid_Date( &NewMessage[NUM_0] ) == NUM_1 )
             {
@@ -233,8 +234,6 @@ void Serial_StMachine( void )
             flag_ok = STATE_ERROR;
             MSGHandler.tm.tm_hour = NewMessage[NUM_1];
             MSGHandler.tm.tm_min  = NewMessage[NUM_2];
-
-            WeekDay( &NewMessage[NUM_0] );
 
             if( Valid_Alarm( &NewMessage[NUM_0] ) == NUM_1 )
             {
