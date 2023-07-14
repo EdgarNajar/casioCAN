@@ -88,19 +88,21 @@ void Clock_Init( void )
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, RTC_SETDEFDATE_RET_ERROR );
 
-    sAlarm.AlarmTime.Hours   = DEF_ALARM_HOURS;
-    sAlarm.AlarmTime.Minutes = DEF_ALARM_MINUTES;
-    sAlarm.AlarmTime.Seconds = DEF_ALARM_SECONDS;
-    sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-    sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
-    sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
-    sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-    // sAlarm.AlarmDateWeekDay = 0x12;
-    sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
-    sAlarm.Alarm = RTC_ALARM_A;
-    Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
-    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RTC_SETDEFALARM_RET_ERROR );
+    // sAlarm.AlarmTime.Hours   = DEF_ALARM_HOURS;
+    // sAlarm.AlarmTime.Minutes = DEF_ALARM_MINUTES;
+    // sAlarm.AlarmTime.Seconds = DEF_ALARM_SECONDS;
+    // sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    // sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+    // sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+    // sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+    // // sAlarm.AlarmDateWeekDay = 0x12;
+    // sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+    // sAlarm.Alarm = RTC_ALARM_A;
+    // Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+    // /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+    // assert_error( Status == HAL_OK, RTC_SETDEFALARM_RET_ERROR );
+
+    HAL_RTC_DeactivateAlarm( &hrtc, RTC_ALARM_A );
 
     static APP_MsgTypeDef Clock_buffer[10];
     ClockQueue.Buffer   = Clock_buffer;
@@ -174,8 +176,8 @@ void Clock_StMachine( void )
             break;
 
         case CHANGE_ALARM:
-            sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_hour;
-            sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_min;
+            sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_alarm_hour;
+            sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_alarm_min;
             Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
             assert_error( Status == HAL_OK, RTC_SETALARM_RET_ERROR );

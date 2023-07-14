@@ -22,6 +22,8 @@ typedef struct _APP_TmTypeDef
     uint32_t tm_sec;         /*!< Seconds,  range 0 to 59          */
     uint32_t tm_min;         /*!< Minutes, range 0 to 59           */
     uint32_t tm_hour;        /*!< Hours, range 0 to 23             */
+    uint32_t tm_alarm_min;   /*!< Minutes, range 0 to 59           */
+    uint32_t tm_alarm_hour;  /*!< Hours, range 0 to 23             */
     uint32_t tm_mday;        /*!< Day of the month, range 1 to 31  */
     uint32_t tm_mon;         /*!< Month, range 0 to 11             */
     uint32_t tm_year;        /*!< Years in rage 1900 2100          */
@@ -35,9 +37,18 @@ typedef struct _APP_TmTypeDef
   */
 typedef struct _APP_MsgTypeDef
 {
+    uint8_t alarm;        /*!< Store the status of the alarm     */
     uint8_t msg;          /*!< Store the message type to send    */
     APP_TmTypeDef tm;     /*!< Time and date in stdlib tm format */
 }APP_MsgTypeDef;
+
+/** 
+  * @defgroup Alarm status
+  @{ */
+#define NO_ALARM   (uint8_t)0  /*!< No alarm is set */
+#define ALARM_SET  (uint8_t)1  /*!< An alarm is set */
+/**
+  @} */
 
 /**
   * @brief   Enum for kind af message
