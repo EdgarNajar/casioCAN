@@ -102,10 +102,18 @@ void Display_Task( void )
  * @note  None
  */
 void Display_StMachine( void )
-{
-    Display_TimeString( &ClockMsg );
+{ 
+    switch( ClockMsg.msg )
+    {
+        case DISPLAY_MSG:
+            Display_TimeString( &ClockMsg );
+            Display_DateString( &ClockMsg );
+            break;
 
-    Display_DateString( &ClockMsg );
+        default:
+            break;
+    }
+    
 }
 
 /**

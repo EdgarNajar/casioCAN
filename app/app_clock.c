@@ -12,7 +12,7 @@
 #include "hil_queue.h"
 #include "hil_scheduler.h"
 
-static uint8_t Clock_StMachine( uint8_t data );
+static void Clock_StMachine( void );
 
 /**
  * @brief  Structure type variable to initialize the RTC
@@ -122,18 +122,11 @@ void Clock_Init( void )
  */
 void Clock_Task( void )
 {
-    uint8_t display;
-
     while( HIL_QUEUE_IsEmptyISR( &SerialQueue, RTC_TAMP_IRQn ) == NUM_0 )
     {
         /*Read the first message*/
         (void)HIL_QUEUE_ReadISR( &SerialQueue, &MSGHandler, RTC_TAMP_IRQn );
-        display = Clock_StMachine( MSGHandler.msg );
-
-        if( display == NUM_1 )
-        {
-            Change_Display();
-        }
+        Clock_StMachine();
     }
 }
 
@@ -144,21 +137,16 @@ void Clock_Task( void )
  * by default to display it, and wait for new time and date information 
  * to update the calendar and display the new information.
  *
- * @param   data         [out]    Actual state in state machine
  * @param   MSGHandler   [in/out] Structure type variable for time data
- * 
- * @retval  The function return the next state to access
  * 
  * @note None
  */
-uint8_t Clock_StMachine( uint8_t data)
+void Clock_StMachine( void )
 {
-    uint8_t flag_default = NUM_0;
-
     switch( MSGHandler.msg )
     {
         case CHANGE_TIME:
-            flag_default = NUM_1;
+            MSGHandler.msg = DISPLAY;
             /* Setting time in BCD format */
             sTime.Hours   = MSGHandler.tm.tm_hour;
             sTime.Minutes = MSGHandler.tm.tm_min;
@@ -169,7 +157,7 @@ uint8_t Clock_StMachine( uint8_t data)
             break;
 
         case CHANGE_DATE:
-            flag_default = NUM_1;
+            MSGHandler.msg = DISPLAY;
             /* Setting date in BCD format */
             sDate.WeekDay = MSGHandler.tm.tm_wday;
             sDate.Month   = MSGHandler.tm.tm_mon;
@@ -182,7 +170,7 @@ uint8_t Clock_StMachine( uint8_t data)
             break;
 
         case CHANGE_ALARM:
-            flag_default = NUM_1;
+            MSGHandler.msg = DISPLAY;
             sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_hour;
             sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_min;
             Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
@@ -190,11 +178,13 @@ uint8_t Clock_StMachine( uint8_t data)
             assert_error( Status == HAL_OK, RTC_SETALARM_RET_ERROR );
             break;
 
+        case DISPLAY:
+            Change_Display();
+            break;
+
         default :
             break;
     }
-
-    return flag_default;
 }
 
 /**
@@ -231,6 +221,6 @@ void Change_Display( void )
     ClockMsg.tm.tm_min  = sTime.Minutes;
     ClockMsg.tm.tm_sec  = sTime.Seconds;
 
-    ClockMsg.msg = MSGHandler.msg;
+    ClockMsg.msg = DISPLAY;
     (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
 }
