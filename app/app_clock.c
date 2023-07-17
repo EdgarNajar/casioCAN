@@ -146,7 +146,6 @@ void Clock_StMachine( void )
     switch( MSGHandler.msg )
     {
         case CHANGE_TIME:
-            MSGHandler.msg = DISPLAY;
             /* Setting time in BCD format */
             sTime.Hours   = MSGHandler.tm.tm_hour;
             sTime.Minutes = MSGHandler.tm.tm_min;
@@ -157,7 +156,6 @@ void Clock_StMachine( void )
             break;
 
         case CHANGE_DATE:
-            MSGHandler.msg = DISPLAY;
             /* Setting date in BCD format */
             sDate.WeekDay = MSGHandler.tm.tm_wday;
             sDate.Month   = MSGHandler.tm.tm_mon;
@@ -170,16 +168,11 @@ void Clock_StMachine( void )
             break;
 
         case CHANGE_ALARM:
-            MSGHandler.msg = DISPLAY;
             sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_hour;
             sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_min;
             Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
             assert_error( Status == HAL_OK, RTC_SETALARM_RET_ERROR );
-            break;
-
-        case DISPLAY:
-            Change_Display();
             break;
 
         default :
@@ -221,6 +214,6 @@ void Change_Display( void )
     ClockMsg.tm.tm_min  = sTime.Minutes;
     ClockMsg.tm.tm_sec  = sTime.Seconds;
 
-    ClockMsg.msg = DISPLAY;
+    ClockMsg.msg = MSGHandler.msg;
     (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
 }

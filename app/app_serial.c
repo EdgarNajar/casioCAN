@@ -18,7 +18,7 @@ static uint8_t Valid_Time( uint8_t *data );
 static uint8_t Valid_Alarm( uint8_t *data );
 static uint8_t Valid_Date( uint8_t *data );
 static void WeekDay( uint8_t *data );
-static void Serial_StMachine( void );
+static uint8_t Serial_StMachine( uint8_t event );
 
 
 /**
@@ -160,16 +160,17 @@ void Serial_Init( void )
  */
 void Serial_Task( void )
 {
+    uint8_t temp = NewMessage[NUM_1];
+
     while( HIL_QUEUE_IsEmptyISR( &CANqueue, TIM16_FDCAN_IT0_IRQn ) == NUM_0 )
     {
         /*Read the first message*/
         (void)HIL_QUEUE_ReadISR( &CANqueue, &NewMessage, TIM16_FDCAN_IT0_IRQn );
 
-        if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
+        while( temp != NUM_0 )
         {
-            MSGHandler.msg = NewMessage[NUM_0];
+            temp = Serial_StMachine( temp );
         }
-        Serial_StMachine();
     }
 }
 
@@ -186,103 +187,118 @@ void Serial_Task( void )
  *
  * @note None
  */
-void Serial_StMachine( void )
+uint8_t Serial_StMachine( uint8_t event )
 {
     uint8_t i = NUM_0;
     uint8_t msn_error[NUM_1] = {HEX_AA};
     uint8_t msn_ok[NUM_1]    = {HEX_55};
-    uint8_t flag_ok;
     
-    switch ( MSGHandler.msg )
+    switch ( event )
     {
         case STATE_TIME:
-            flag_ok = STATE_ERROR;
-            MSGHandler.tm.tm_hour = NewMessage[NUM_1];
-            MSGHandler.tm.tm_min  = NewMessage[NUM_2];
-            MSGHandler.tm.tm_sec  = NewMessage[NUM_3];
+            event = STATE_ERROR;
 
-            if( Valid_Time( &NewMessage[NUM_0] ) == NUM_1 )
+            if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
             {
-                MSGHandler.msg = SERIAL_MSG_TIME;
-                flag_ok = STATE_OK;
-            }
+                MSGHandler.tm.tm_hour = NewMessage[NUM_1];
+                MSGHandler.tm.tm_min  = NewMessage[NUM_2];
+                MSGHandler.tm.tm_sec  = NewMessage[NUM_3];
 
-            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
+                if( Valid_Time( &NewMessage[NUM_0] ) == NUM_1 )
+                {
+                    event = STATE_OK;
+                    MSGHandler.msg   = SERIAL_MSG_TIME;
+                }
+            }
+            
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
             break;
         
         case STATE_DATE:
-            flag_ok = STATE_ERROR;
-            MSGHandler.tm.tm_mday = NewMessage[NUM_1];
-            MSGHandler.tm.tm_mon  = NewMessage[NUM_2];
-            MSGHandler.tm.tm_yday = NewMessage[NUM_3];
-            MSGHandler.tm.tm_year = NewMessage[NUM_4];
-            WeekDay( &NewMessage[NUM_0] );
+           event = STATE_ERROR;
 
-            if( Valid_Date( &NewMessage[NUM_0] ) == NUM_1 )
+            if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
             {
-                MSGHandler.msg = SERIAL_MSG_DATE;
-                flag_ok = STATE_OK;
+                MSGHandler.tm.tm_mday = NewMessage[NUM_1];
+                MSGHandler.tm.tm_mon  = NewMessage[NUM_2];
+                MSGHandler.tm.tm_yday = NewMessage[NUM_3];
+                MSGHandler.tm.tm_year = NewMessage[NUM_4];
+                WeekDay( &NewMessage[NUM_0] );
+
+                if( Valid_Date( &NewMessage[NUM_0] ) == NUM_1 )
+                {
+                    event = STATE_OK;
+                    MSGHandler.msg   = SERIAL_MSG_DATE;
+                }
             }
 
-            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
             break;
 
         case STATE_ALARM:
-            flag_ok = STATE_ERROR;
-            MSGHandler.tm.tm_hour = NewMessage[NUM_1];
-            MSGHandler.tm.tm_min  = NewMessage[NUM_2];
+            event = STATE_ERROR;
 
-            if( Valid_Alarm( &NewMessage[NUM_0] ) == NUM_1 )
+            if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
             {
-                MSGHandler.msg = SERIAL_MSG_ALARM;
-                flag_ok = STATE_OK;
+                MSGHandler.tm.tm_hour = NewMessage[NUM_1];
+                MSGHandler.tm.tm_min  = NewMessage[NUM_2];
+
+                if( Valid_Alarm( &NewMessage[NUM_0] ) == NUM_1 )
+                {
+                    event = STATE_OK;
+                    MSGHandler.msg   = SERIAL_MSG_ALARM;
+                }
             }
 
-            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
+            break;
+
+        case STATE_OK:
+            event = SERIAL_MSG_NONE;
+
+            if( NewMessage[NUM_0] == NUM_1 )
+            {
+                i = (NUM_4 << NUM_4) + (HEX_55 & HEX_0F);
+            }
+            else if( NewMessage[NUM_0] == NUM_2 )
+            {
+                i = (NUM_5 << NUM_4) + (HEX_55 & HEX_0F);
+            }
+            else if( NewMessage[NUM_0] == NUM_3 )
+            {
+                i = (NUM_3 << NUM_4) + (HEX_55 & HEX_0F);
+            }
+            else
+            {}
+
+            CanTp_SingleFrameTx( &msn_ok[NUM_0], i );
+            break;
+    
+        case STATE_ERROR:
+            event = SERIAL_MSG_NONE;
+
+            if( NewMessage[NUM_0] == NUM_1 )
+            {
+                i = (NUM_4 << NUM_4) + (HEX_AA & HEX_0F);
+            }
+            else if( NewMessage[NUM_0] == NUM_2 )
+            {
+                i = (NUM_5 << NUM_4) + (HEX_AA & HEX_0F);
+            }
+            else if( NewMessage[NUM_0] == NUM_3 )
+            {
+                i = (NUM_3 << NUM_4) + (HEX_AA & HEX_0F);
+            }
+            else
+            {}
+
+            CanTp_SingleFrameTx( &msn_error[NUM_0], i );
             break;
 
         default :
             break;
     }
-
-    if(flag_ok == STATE_OK)
-    {
-        if( NewMessage[NUM_0] == NUM_1 )
-        {
-            i = (NUM_4 << NUM_4) + (HEX_55 & HEX_0F);
-        }
-        else if( NewMessage[NUM_0] == NUM_2 )
-        {
-            i = (NUM_5 << NUM_4) + (HEX_55 & HEX_0F);
-        }
-        else if( NewMessage[NUM_0] == NUM_3 )
-        {
-            i = (NUM_3 << NUM_4) + (HEX_55 & HEX_0F);
-        }
-        else
-        {}
-
-        CanTp_SingleFrameTx( &msn_ok[NUM_0], i );
-    }
-    else    //STATE_ERROR
-    {
-        if( NewMessage[NUM_0] == NUM_1 )
-        {
-            i = (NUM_4 << NUM_4) + (HEX_AA & HEX_0F);
-        }
-        else if( NewMessage[NUM_0] == NUM_2 )
-        {
-            i = (NUM_5 << NUM_4) + (HEX_AA & HEX_0F);
-        }
-        else if( NewMessage[NUM_0] == NUM_3 )
-        {
-            i = (NUM_3 << NUM_4) + (HEX_AA & HEX_0F);
-        }
-        else
-        {}
-
-        CanTp_SingleFrameTx( &msn_error[NUM_0], i );
-    }
+    return event;
 }
 
 /**
