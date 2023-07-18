@@ -18,8 +18,9 @@ static uint8_t Valid_Time( uint8_t *data );
 static uint8_t Valid_Alarm( uint8_t *data );
 static uint8_t Valid_Date( uint8_t *data );
 static void WeekDay( uint8_t *data );
-static APP_States Serial_StMachine( APP_States state );
-
+static void Serial_StMachine( void );
+static void State_Ok( void );
+static void State_Error( void );
 
 /**
  * @brief  Structure type variable for user CAN initialization
@@ -160,11 +161,12 @@ void Serial_Init( void )
  */
 void Serial_Task( void )
 {
-    APP_States state_control = STATE_RECEPTION;
-
-    while( state_control != STATE_IDLE )
+    while( HIL_QUEUE_IsEmptyISR( &CANqueue, TIM16_FDCAN_IT0_IRQn ) == NUM_0 )
     {
-        state_control = Serial_StMachine( state_control );
+        /*Read the first message*/
+        (void)HIL_QUEUE_ReadISR( &CANqueue, NewMessage, TIM16_FDCAN_IT0_IRQn );
+        MSGHandler.msg = NewMessage[NUM_1];
+        Serial_StMachine();
     }
 }
 
@@ -177,145 +179,145 @@ void Serial_Task( void )
  * then a message will be send to indicate success or error.
  *
  * @param   msgRecieve     [in]  To verify if there is a new message
- * @param   state          [in]  Actual state in state machine
  * @param   NewMessage     [out] To storage the message form CAN
  *
- * @retval  The function return the next state to access
- * 
  * @note None
  */
-APP_States Serial_StMachine( APP_States state )
+void Serial_StMachine( void )
 {
-    uint8_t i = NUM_0;
-    uint8_t msn_error[NUM_1] = {HEX_AA};
-    uint8_t msn_ok[NUM_1]    = {HEX_55};
-    uint8_t RxBuffer[NUM_8];
-    APP_States state_control = state;
-    
-    switch ( state_control )
+    switch ( MSGHandler.msg )
     {
-        case STATE_IDLE:
-            break;
-
-        case STATE_RECEPTION:
-            if( HIL_QUEUE_IsEmpty( &CANqueue ) == QUEUE_NOT_EMPTY )
-            {
-                /* Read the first message */
-                (void)HIL_QUEUE_Read( &CANqueue, &RxBuffer );
-                /* Filter the message to know if is a valid CAN-TP single frame message */
-                if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
-                {
-                    /* Move to next state to process the message */
-                    state_control = STATE_MESSAGE;
-                }
-            }
-            else
-            {
-                /* If not message left in the queue move to IDLE */
-                state_control = STATE_IDLE;
-            }
-            break;
-        
-        case STATE_MESSAGE:
-            if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_TIME )
-            {
-                state_control = STATE_TIME;
-            }
-            else if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_DATE )
-            {
-                state_control = STATE_DATE;
-            }
-            else if( NewMessage[NUM_0] == (uint8_t)SERIAL_MSG_ALARM ) 
-            {
-                state_control = STATE_ALARM;
-            }
-            else if( msgRecieve == (uint8_t)SERIAL_MSG_NONE )
-            {
-                state_control = STATE_ERROR;
-            }
-            else
-            {
-                state_control = STATE_ERROR;
-            }
-            break;
-
         case STATE_TIME:
-            // Check for hours, minutes and seconds
-            state_control = STATE_ERROR;
-
-            if( Valid_Time( &NewMessage[NUM_0] ) == NUM_1 )
+            if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
             {
-                state_control = STATE_OK;
+                MSGHandler.tm.tm_hour = NewMessage[NUM_1];
+                MSGHandler.tm.tm_min  = NewMessage[NUM_2];
+                MSGHandler.tm.tm_sec  = NewMessage[NUM_3];
+
+                if( Valid_Time( &NewMessage[NUM_0] ) == NUM_1 )
+                {
+                    MSGHandler.msg = SERIAL_MSG_TIME;
+                    State_Ok();
+                }
+                else
+                {
+                    MSGHandler.msg = SERIAL_MSG_NONE;
+                    State_Error();
+                }
             }
             break;
         
         case STATE_DATE:
-            // Check for days, months and year
-            state_control = STATE_ERROR;
-
-            if( Valid_Date( &NewMessage[NUM_0] ) == NUM_1 )
+            if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
             {
-                state_control = STATE_OK;
+                MSGHandler.tm.tm_mday = NewMessage[NUM_1];
+                MSGHandler.tm.tm_mon  = NewMessage[NUM_2];
+                MSGHandler.tm.tm_yday = NewMessage[NUM_3];
+                MSGHandler.tm.tm_year = NewMessage[NUM_4];
+                WeekDay( &NewMessage[NUM_0] );
+
+                if( Valid_Date( &NewMessage[NUM_0] ) == NUM_1 )
+                {
+                    MSGHandler.msg = SERIAL_MSG_DATE;
+                    State_Ok();
+                }
+                else
+                {
+                    MSGHandler.msg = SERIAL_MSG_NONE;
+                    State_Error();
+                }
             }
             break;
 
         case STATE_ALARM:
-            // Check for hours and minutes
-            state_control = STATE_ERROR;
-
-            if( Valid_Alarm( &NewMessage[NUM_0] ) == NUM_1 )
+            if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
             {
-                state_control = STATE_OK;
+                MSGHandler.tm.tm_hour = NewMessage[NUM_1];
+                MSGHandler.tm.tm_min  = NewMessage[NUM_2];
+
+                if( Valid_Alarm( &NewMessage[NUM_0] ) == NUM_1 )
+                {
+                    MSGHandler.msg = SERIAL_MSG_ALARM;
+                    State_Ok();
+                }
+                else
+                {
+                    MSGHandler.msg = SERIAL_MSG_NONE;
+                    State_Error();
+                }
             }
             break;
 
-        case STATE_OK:
-            if( NewMessage[NUM_0] == NUM_1 )
-            {
-                i = (NUM_4 << NUM_4) + (HEX_55 & HEX_0F);
-            }
-            else if( NewMessage[NUM_0] == NUM_2 )
-            {
-                i = (NUM_5 << NUM_4) + (HEX_55 & HEX_0F);
-            }
-            else if( NewMessage[NUM_0] == NUM_3 )
-            {
-                i = (NUM_3 << NUM_4) + (HEX_55 & HEX_0F);
-            }
-            else
-            {}
-
-            CanTp_SingleFrameTx( &msn_ok[NUM_0], i );
-            
-            state_control = STATE_IDLE;
-            break;
-    
-        case STATE_ERROR:
-            if( NewMessage[NUM_0] == NUM_1 )
-            {
-                i = (NUM_4 << NUM_4) + (HEX_AA & HEX_0F);
-            }
-            else if( NewMessage[NUM_0] == NUM_2 )
-            {
-                i = (NUM_5 << NUM_4) + (HEX_AA & HEX_0F);
-            }
-            else if( NewMessage[NUM_0] == NUM_3 )
-            {
-                i = (NUM_3 << NUM_4) + (HEX_AA & HEX_0F);
-            }
-            else
-            {}
-
-            CanTp_SingleFrameTx( &msn_error[NUM_0], i );
-
-            state_control = STATE_IDLE;
-            break;
-
-        default :
-            break;
+            default :
+                break;
     }
+}
 
-    return state_control;
+/**
+ * @brief   **Message ok**
+ *
+ * This function write a message in case the CAN message is correct
+ * and sends it with the help of the funcion CanTp_SingleFrameTx
+ *
+ * @param   NewMessage [in] New message from CAN
+ *
+ * @note None
+ */
+void State_Ok( void )
+{
+    uint8_t i = NUM_0;
+    uint8_t msn_ok[NUM_1]    = {HEX_55};
+
+    if( NewMessage[NUM_0] == NUM_1 )
+    {
+        i = (NUM_4 << NUM_4) + (HEX_55 & HEX_0F);
+    }
+    else if( NewMessage[NUM_0] == NUM_2 )
+    {
+        i = (NUM_5 << NUM_4) + (HEX_55 & HEX_0F);
+    }
+    else if( NewMessage[NUM_0] == NUM_3 )
+    {
+        i = (NUM_3 << NUM_4) + (HEX_55 & HEX_0F);
+    }
+    else
+    {}
+
+    (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
+    CanTp_SingleFrameTx( &msn_ok[NUM_0], i );
+}
+
+/**
+ * @brief   **Message error**
+ *
+ * This function write a message in case the CAN message is  not correct
+ * and sends it with the help of the funcion CanTp_SingleFrameTx
+ *
+ * @param   NewMessage [in] New message from CAN
+ *
+ * @note None
+ */
+void State_Error( void )
+{
+    uint8_t i = NUM_0;
+    uint8_t msn_error[NUM_1] = {HEX_AA};
+
+    if( NewMessage[NUM_0] == NUM_1 )
+    {
+        i = (NUM_4 << NUM_4) + (HEX_AA & HEX_0F);
+    }
+    else if( NewMessage[NUM_0] == NUM_2 )
+    {
+        i = (NUM_5 << NUM_4) + (HEX_AA & HEX_0F);
+    }
+    else if( NewMessage[NUM_0] == NUM_3 )
+    {
+        i = (NUM_3 << NUM_4) + (HEX_AA & HEX_0F);
+    }
+    else
+    {}
+
+    CanTp_SingleFrameTx( &msn_error[NUM_0], i );
 }
 
 /**
@@ -371,12 +373,6 @@ static uint8_t Valid_Time( uint8_t *data )
         ((data[NUM_3] >= HEX_0) && (data[NUM_3] <= HEX_59)) ) 
     {
         ret_val = NUM_1;
-
-        MSGHandler.msg        = data[NUM_0];
-        MSGHandler.tm.tm_hour = data[NUM_1];
-        MSGHandler.tm.tm_min  = data[NUM_2];
-        MSGHandler.tm.tm_sec  = data[NUM_3];
-        (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
     }
 
     return ret_val;
@@ -406,11 +402,6 @@ static uint8_t Valid_Alarm( uint8_t *data )
         ((data[NUM_2] >= HEX_0) && (data[NUM_2] <= HEX_59)) ) 
     {
         ret_val = NUM_1;
-
-        MSGHandler.msg        = data[NUM_0];
-        MSGHandler.tm.tm_hour = data[NUM_1];
-        MSGHandler.tm.tm_min  = data[NUM_2];
-        (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
     }
 
     return ret_val;
@@ -450,15 +441,6 @@ static uint8_t Valid_Date( uint8_t *data )
             if( (data[NUM_2] == FEBRUARY) && (data[NUM_1] <= HEX_29) )
             {
                 ret_val = NUM_1;
-
-                MSGHandler.msg        = data[NUM_0];
-                MSGHandler.tm.tm_mday = data[NUM_1];
-                MSGHandler.tm.tm_mon  = data[NUM_2];
-                MSGHandler.tm.tm_yday = data[NUM_3];
-                MSGHandler.tm.tm_year = data[NUM_4];
-
-                WeekDay( &NewMessage[NUM_0] );
-                (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
             }
             else
             {
@@ -468,14 +450,6 @@ static uint8_t Valid_Date( uint8_t *data )
         else if( (data[NUM_2] == FEBRUARY) && (data[NUM_1] <= HEX_28) ) // Check for february
         {
             ret_val = NUM_1;
-
-            MSGHandler.msg        = data[NUM_0];
-            MSGHandler.tm.tm_mday = data[NUM_1];
-            MSGHandler.tm.tm_mon  = data[NUM_2];
-            MSGHandler.tm.tm_yday = data[NUM_3];
-            MSGHandler.tm.tm_year = data[NUM_4];
-            WeekDay( &NewMessage[NUM_0] );
-            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
         }
         else if( ( (data[NUM_2] == APRIL) || 
                    (data[NUM_2] == JUNE) || 
@@ -484,14 +458,6 @@ static uint8_t Valid_Date( uint8_t *data )
                    (data[NUM_2] <= HEX_30) ) // Check for months with 30 days
         {
             ret_val = NUM_1;
-
-            MSGHandler.msg        = data[NUM_0];
-            MSGHandler.tm.tm_mday = data[NUM_1];
-            MSGHandler.tm.tm_mon  = data[NUM_2];
-            MSGHandler.tm.tm_yday = data[NUM_3];
-            MSGHandler.tm.tm_year = data[NUM_4];
-            WeekDay( &NewMessage[NUM_0] );
-            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
         }
         else if( (data[NUM_2] == JANUARY) || 
                  (data[NUM_2] == MARCH) || 
@@ -502,14 +468,6 @@ static uint8_t Valid_Date( uint8_t *data )
                  (data[NUM_2] == DECEMBER) ) // Otherwise, the month has 31 days
         {
             ret_val = NUM_1;
-
-            MSGHandler.msg        = data[NUM_0];
-            MSGHandler.tm.tm_mday = data[NUM_1];
-            MSGHandler.tm.tm_mon  = data[NUM_2];
-            MSGHandler.tm.tm_yday = data[NUM_3];
-            MSGHandler.tm.tm_year = data[NUM_4];
-            WeekDay( &NewMessage[NUM_0] );
-            (void)HIL_QUEUE_Write( &SerialQueue, &MSGHandler );
         }
         else
         {
@@ -612,7 +570,7 @@ static void CanTp_SingleFrameTx( uint8_t *data, uint8_t size )
  * @brief   **CAN-TP single frame format**
  *
  * The function validate if the message received complies with CAN-TP single frame format
- * then eliminates the firs byte and pack the ret of the data to be processed
+ * then eliminates the first byte and pack the rest of the data to be processed
  *
  * @param   data        [in]     Pointer to data
  * @param   size        [in]     Size of data

@@ -14,10 +14,7 @@
 /** 
   * @defgroup States for display data
   @{ */
-#define DISPLAY_IDLE       (uint8_t)0  /*!< States for display idle      */
-#define DISPLAY_RECEPTION  (uint8_t)1  /*!< States for display reception */
-#define DISPLAY_TIME       (uint8_t)2  /*!< States for display time      */
-#define DISPLAY_DATE       (uint8_t)3  /*!< States for display date      */
+#define DISPLAY_MSG  (uint8_t)4  /*!< Display message */
 /**
   @} */
 

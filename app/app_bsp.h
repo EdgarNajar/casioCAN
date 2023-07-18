@@ -56,14 +56,11 @@ typedef enum
   */
 typedef enum
 {
-    STATE_IDLE = 1u, /*!< Wait for a message    */
-    STATE_MESSAGE,   /*!< Message recieve       */
-    STATE_TIME,      /*!< Time message          */
+    STATE_TIME = 1,  /*!< Time message          */
     STATE_DATE,      /*!< Date message          */
     STATE_ALARM,     /*!< Alarm message         */
     STATE_OK,        /*!< Message recieve ok    */
     STATE_ERROR,     /*!< Message recieve error */
-    STATE_RECEPTION  /*!< Message recieve error */
 }APP_States;
 
 /** 
