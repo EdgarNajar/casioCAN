@@ -201,6 +201,7 @@ void Serial_StMachine( void )
                 }
                 else
                 {
+                    MSGHandler.msg = SERIAL_MSG_NONE;
                     State_Error();
                 }
             }
@@ -224,6 +225,7 @@ void Serial_StMachine( void )
                 }
                 else
                 {
+                    MSGHandler.msg = SERIAL_MSG_NONE;
                     State_Error();
                 }
             }
@@ -244,6 +246,7 @@ void Serial_StMachine( void )
                 }
                 else
                 {
+                    MSGHandler.msg = SERIAL_MSG_NONE;
                     State_Error();
                 }
             }
