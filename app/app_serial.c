@@ -205,8 +205,6 @@ void Serial_StMachine( void )
                     State_Error();
                 }
             }
-            
-            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
             break;
         
         case STATE_DATE:
@@ -229,8 +227,6 @@ void Serial_StMachine( void )
                     State_Error();
                 }
             }
-
-            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
             break;
 
         case STATE_ALARM:
@@ -250,8 +246,6 @@ void Serial_StMachine( void )
                     State_Error();
                 }
             }
-
-            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
             break;
 
             default :
@@ -289,6 +283,7 @@ void State_Ok( void )
     else
     {}
 
+    (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
     CanTp_SingleFrameTx( &msn_ok[NUM_0], i );
 }
 
@@ -323,7 +318,6 @@ void State_Error( void )
     {}
 
     CanTp_SingleFrameTx( &msn_error[NUM_0], i );
-
 }
 
 /**
