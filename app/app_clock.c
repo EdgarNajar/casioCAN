@@ -214,6 +214,6 @@ void Change_Display( void )
     ClockMsg.tm.tm_min  = sTime.Minutes;
     ClockMsg.tm.tm_sec  = sTime.Seconds;
 
-    ClockMsg.msg = MSGHandler.msg;
+    ClockMsg.msg = DISPLAY;
     (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
 }
