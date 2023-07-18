@@ -153,6 +153,9 @@ void Clock_StMachine( void )
             Status = HAL_RTC_SetTime( &hrtc, &sTime, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
             assert_error( Status == HAL_OK, RTC_SETTIME_RET_ERROR );
+            
+            MSGHandler.msg = DISPLAY;
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
             break;
 
         case CHANGE_DATE:
@@ -165,6 +168,9 @@ void Clock_StMachine( void )
             Status = HAL_RTC_SetDate( &hrtc, &sDate, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
             assert_error( Status == HAL_OK, RTC_SETDATE_RET_ERROR );
+            
+            MSGHandler.msg = DISPLAY;
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
             break;
 
         case CHANGE_ALARM:
@@ -173,8 +179,15 @@ void Clock_StMachine( void )
             Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
             assert_error( Status == HAL_OK, RTC_SETALARM_RET_ERROR );
+            
+            MSGHandler.msg = DISPLAY;
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
             break;
 
+        case DISPLAY:
+            Change_Display();
+            break;
+            
         default :
             break;
     }
