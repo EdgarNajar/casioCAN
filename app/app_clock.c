@@ -17,7 +17,7 @@ static void Clock_StMachine( void );
 /**
  * @brief  Structure type variable to initialize the RTC
  */
-static RTC_HandleTypeDef hrtc;
+RTC_HandleTypeDef hrtc;
 
 /**
  * @brief  Structure type valriable for user RTC date initialization
@@ -48,7 +48,7 @@ extern Scheduler_HandleTypeDef SchedulerHandler;
  * @brief   **RTC peripheral**
  *
  * This function configures and initialize the RTC peripheral
- * in 24 hours format and no output signal enble
+ * in 24 hours format and no output signal enable
  *
  * @param   hrtc [out] Structure type variable used to configure the RTC
  *
@@ -103,6 +103,8 @@ void Clock_Init( void )
     // assert_error( Status == HAL_OK, RTC_SETDEFALARM_RET_ERROR );
 
     HAL_RTC_DeactivateAlarm( &hrtc, RTC_ALARM_A );
+
+    MSGHandler.alarm = NO_ALARM;
 
     static APP_MsgTypeDef Clock_buffer[10];
     ClockQueue.Buffer   = Clock_buffer;
@@ -176,6 +178,7 @@ void Clock_StMachine( void )
             break;
 
         case CHANGE_ALARM:
+            MSGHandler.alarm = ALARM_SET;
             sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_alarm_hour;
             sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_alarm_min;
             Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
@@ -228,6 +231,9 @@ void Change_Display( void )
     ClockMsg.tm.tm_hour = sTime.Hours;
     ClockMsg.tm.tm_min  = sTime.Minutes;
     ClockMsg.tm.tm_sec  = sTime.Seconds;
+
+    ClockMsg.tm.tm_alarm_hour = sAlarm.AlarmTime.Hours;
+    ClockMsg.tm.tm_alarm_min  = sAlarm.AlarmTime.Minutes;
 
     ClockMsg.msg = DISPLAY;
     (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );

@@ -14,7 +14,10 @@
 /** 
   * @defgroup States for display data
   @{ */
-#define DISPLAY_MSG  (uint8_t)4  /*!< Display message */
+#define DISPLAY_MSG    (uint8_t)4  /*!< Display message */
+#define ALARM_ACTIVE   (uint8_t)5  /*!< Display alarm   */
+#define DISPLAY_ALERT  (uint8_t)6  /*!< Display alert   */
+#define DISPLAY_ALARM  (uint8_t)7  /*!< Display alarm   */
 /**
   @} */
 

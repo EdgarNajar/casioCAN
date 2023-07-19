@@ -108,6 +108,33 @@ void Display_StMachine( void )
         case DISPLAY_MSG:
             Display_TimeString( &ClockMsg );
             Display_DateString( &ClockMsg );
+
+            ClockMsg.msg = ALARM_ACTIVE;
+            (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+            break;
+
+        case ALARM_ACTIVE:
+            if( MSGHandler.alarm == ALARM_SET )
+            {
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_Data( &hlcd, 'A' );
+            }
+            else
+            {
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_Data( &hlcd, ' ' );
+            }
+
+            ClockMsg.msg = DISPLAY_ALERT;
+            (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+            break;
+
+        case DISPLAY_ALERT:
+            if( MSGHandler.alarm == ALARM_TRIGGER )
+            {
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_String( &hlcd, "    ALARM!!!" );
+            }
             break;
 
         default:
@@ -194,4 +221,20 @@ static void Display_DateString( APP_MsgTypeDef *tm )
     Status = HEL_LCD_String( &hlcd, &buffer_date[NUM_0] );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
+}
+
+/**
+ * @brief   **RTC alarm event callback**
+ *
+ * To make the string of date to be send to the LCD in format mmm dd yyyy 
+ *
+ * @param   hrtc       [in]  Structure type variable to handle the RTC
+ * @param   MSGHandler [out] Structure type variable for time data
+ * 
+ * @note  None
+ */
+/* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
+void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
+{
+    MSGHandler.alarm = ALARM_TRIGGER;
 }

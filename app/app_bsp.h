@@ -45,8 +45,9 @@ typedef struct _APP_MsgTypeDef
 /** 
   * @defgroup Alarm status
   @{ */
-#define NO_ALARM   (uint8_t)0  /*!< No alarm is set */
-#define ALARM_SET  (uint8_t)1  /*!< An alarm is set */
+#define NO_ALARM       (uint8_t)0  /*!< No alarm is set */
+#define ALARM_SET      (uint8_t)1  /*!< An alarm is set */
+#define ALARM_TRIGGER  (uint8_t)2  /*!< Alarm trigger   */
 /**
   @} */
 
@@ -109,6 +110,11 @@ extern uint32_t tick_display;
  * @brief  Struct type variable to handle the SPI
  */
 extern SPI_HandleTypeDef SpiHandle;
+
+/**
+ * @brief  Structure type variable to initialize the RTC
+ */
+extern RTC_HandleTypeDef hrtc;
 
 /**
  * @brief  Struct type variable to clock messages
