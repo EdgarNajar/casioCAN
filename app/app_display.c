@@ -73,6 +73,56 @@ void Display_Init( void )
     assert_error( Status == HAL_OK, LCD_INIT_RET_ERROR );
 
     HEL_LCD_Backlight( &hlcd, LCD_ON );
+
+    GPIO_InitTypeDef GPIO_InitStruct;               /*gpios initial structure*/
+    
+    __HAL_RCC_GPIOB_CLK_ENABLE();                   /*Enable clock on port A*/
+  
+    GPIO_InitStruct.Pin = GPIO_PIN_15;               /*pin to set as output*/
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;    /*input mode with interrupts enable on falling and rising edges*/    GPIO_InitStruct.Pull = GPIO_NOPULL;             /*no pull-up niether pull-down*/
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    /*pin speed*/
+    /*use the previous parameters to set configuration on pin C15*/
+    HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
+    
+    /*Enable interrupt vector EXTI4_15_IRQ where the CPU will jump if a input change
+    happens on pins 4 to 15*/
+    HAL_NVIC_SetPriority( EXTI4_15_IRQn, 2, 0 );
+    HAL_NVIC_EnableIRQ( EXTI4_15_IRQn );
+}
+
+/**
+ * @brief   **Falling callback for pin C15**
+ *
+ * When the pin changes from high to low this function will be called 
+ * by HAL_GPIO_EXTI_IRQHandler which is in turn called from the 
+ * EXTI4_15_IRQHandler interrupt vector
+ *
+ * @param   GPIO_Pin  [in]  Pin to check
+ * 
+ * @note None
+ */
+/* */
+/* cppcheck-suppress misra-c2012-2.7 ; function defined in HAL library */
+void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin )
+{
+    /*do something while still in the ISR*/    
+}
+
+/**
+ * @brief   **Rising callback for pin C15**
+ *
+ * When the pin changes from low to high this function will be called 
+ * by HAL_GPIO_EXTI_IRQHandler which is in turn called from the 
+ * EXTI4_15_IRQHandler interrupt vector
+ *
+ * @param   GPIO_Pin  [in]  Pin to check
+ * 
+ * @note None
+ */
+/* cppcheck-suppress misra-c2012-2.7 ; function defined in HAL library */
+void HAL_GPIO_EXTI_Rising_Callback( uint16_t GPIO_Pin )
+{
+    /*do something while still in the ISR*/
 }
 
 /**
@@ -221,20 +271,4 @@ static void Display_DateString( APP_MsgTypeDef *tm )
     Status = HEL_LCD_String( &hlcd, &buffer_date[NUM_0] );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
-}
-
-/**
- * @brief   **RTC alarm event callback**
- *
- * To make the string of date to be send to the LCD in format mmm dd yyyy 
- *
- * @param   hrtc       [in]  Structure type variable to handle the RTC
- * @param   MSGHandler [out] Structure type variable for time data
- * 
- * @note  None
- */
-/* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
-void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
-{
-    MSGHandler.alarm = ALARM_TRIGGER;
 }
