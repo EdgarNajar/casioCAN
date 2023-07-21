@@ -14,10 +14,21 @@
 /** 
   * @defgroup States for display data
   @{ */
-#define DISPLAY_MSG    (uint8_t)4  /*!< Display message */
-#define ALARM_ACTIVE   (uint8_t)5  /*!< Display alarm   */
-#define DISPLAY_ALERT  (uint8_t)6  /*!< Display alert   */
-#define DISPLAY_ALARM  (uint8_t)7  /*!< Display alarm   */
+#define DISPLAY_MSG      (uint8_t)4  /*!< Display message    */
+#define ALARM_ACTIVE     (uint8_t)5  /*!< Display alarm      */
+#define DISPLAY_ALERT    (uint8_t)6  /*!< Display alert      */
+#define DISPLAY_ALARM    (uint8_t)7  /*!< Display alarm      */
+#define BUTTON_PRESSED   (uint8_t)8  /*!< Button is pressed  */
+#define BUTTON_RELEASED  (uint8_t)9  /*!< Button is released */
+/**
+  @} */
+
+/** 
+  * @defgroup Alarm Button
+  @{ */
+#define NOT_PRESSED  (uint8_t)0  /*!< The button is not pressed */
+#define IS_PRESSED   (uint8_t)1  /*!< The button is pressed     */
+#define IS_RELEASED  (uint8_t)2  /*!< The button is released    */
 /**
   @} */
 

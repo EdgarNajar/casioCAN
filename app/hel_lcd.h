@@ -46,6 +46,7 @@
 #define COL_0 (uint8_t)0x00  /*!< Column 0 */
 #define COL_1 (uint8_t)0x01  /*!< Column 1 */
 #define COL_3 (uint8_t)0x03  /*!< Column 3 */
+#define COL_9 (uint8_t)0x09  /*!< Column 9 */
 /**
   @} */
 

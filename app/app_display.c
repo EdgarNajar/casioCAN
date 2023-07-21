@@ -31,6 +31,11 @@ APP_MsgTypeDef ClockMsg;
 SPI_HandleTypeDef SpiHandle;
 
 /**
+ * @brief  Struct type variable to handle the SPI
+ */
+uint8_t AlarmButton = NOT_PRESSED;
+
+/**
  * @brief   **Initialization of the LCD**
  *
  * This function initialize the ports to start working with the LCD and to
@@ -105,7 +110,7 @@ void Display_Init( void )
 /* cppcheck-suppress misra-c2012-2.7 ; function defined in HAL library */
 void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin )
 {
-    /*do something while still in the ISR*/    
+    AlarmButton = IS_PRESSED;
 }
 
 /**
@@ -122,7 +127,7 @@ void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin )
 /* cppcheck-suppress misra-c2012-2.7 ; function defined in HAL library */
 void HAL_GPIO_EXTI_Rising_Callback( uint16_t GPIO_Pin )
 {
-    /*do something while still in the ISR*/
+    AlarmButton = IS_RELEASED;
 }
 
 /**
@@ -152,7 +157,9 @@ void Display_Task( void )
  * @note  None
  */
 void Display_StMachine( void )
-{ 
+{
+    char alarm[NUM_14];
+
     switch( ClockMsg.msg )
     {
         case DISPLAY_MSG:
@@ -185,6 +192,59 @@ void Display_StMachine( void )
                 HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
                 HEL_LCD_String( &hlcd, "    ALARM!!!" );
             }
+
+            ClockMsg.msg = BUTTON_PRESSED;
+            (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+            break;
+
+        case BUTTON_PRESSED:
+            alarm[NUM_0] = (ClockMsg.tm.tm_alarm_hour / NUM_10) + (uint8_t)'0';
+            alarm[NUM_1] = (ClockMsg.tm.tm_alarm_hour % NUM_10) + (uint8_t)'0';
+            alarm[NUM_2] = ':';
+            alarm[NUM_3] = (ClockMsg.tm.tm_alarm_min / NUM_10) + (uint8_t)'0';
+            alarm[NUM_4] = (ClockMsg.tm.tm_alarm_min % NUM_10) + (uint8_t)'0';
+
+            if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == IS_PRESSED) )
+            {
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_String( &hlcd, "            " );
+            }
+            else if( (MSGHandler.alarm == ALARM_SET) && (AlarmButton == IS_PRESSED) )
+            {
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_String( &hlcd, "   ALARM=" );
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_9 );
+                HEL_LCD_String( &hlcd, alarm );
+            }
+            else if( (MSGHandler.alarm == NO_ALARM) && (AlarmButton == IS_PRESSED) )
+            {
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_String( &hlcd, "ALARM NO CONFIG " );
+            }
+            else if( (MSGHandler.alarm == NO_ALARM) && (AlarmButton == IS_RELEASED) )
+            {
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_String( &hlcd, "   " );
+            }
+
+            ClockMsg.msg = BUTTON_RELEASED;
+            (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+            break;
+
+        case BUTTON_RELEASED:
+            if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == IS_PRESSED) )
+            {
+                MSGHandler.alarm = NO_ALARM;
+                Status = HAL_RTC_DeactivateAlarm( &hrtc, RTC_ALARM_A );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, RTC_DEACTICATE_ALARM_RET_ERROR );
+
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_String( &hlcd, "            " );
+            }
+
+            // ClockMsg.msg = BUTTON_RELEASED;
+            // (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
             break;
 
         default:
