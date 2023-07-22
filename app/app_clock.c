@@ -231,8 +231,11 @@ void Change_Display( void )
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, RTC_GETDATE_RET_ERROR );
     /* Get the RTC current Alarm */
-    if( MSGHandler.alarm == ALARM_SET )
+    if( (MSGHandler.alarm == ALARM_SET) && (AlarmButton == IS_PRESSED) )
     {
+        Status = HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
+        /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+        assert_error( Status == HAL_OK, RTC_GETTIME_RET_ERROR );
         Status = HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
         /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
         assert_error( Status == HAL_OK, RTC_GETALARM_RET_ERROR );
@@ -268,6 +271,5 @@ void Change_Display( void )
 /* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
 void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
 {
-    sAlarm.AlarmTime.Seconds=sAlarm.AlarmTime.Seconds+1;
     MSGHandler.alarm = ALARM_TRIGGER;
 }

@@ -31,6 +31,11 @@ APP_MsgTypeDef ClockMsg;
 SPI_HandleTypeDef SpiHandle;
 
 /**
+ * @brief  Struct type variable to handle the PWM
+ */
+TIM_HandleTypeDef TIM14Handle;
+
+/**
  * @brief  Struct type variable to handle the SPI
  */
 uint8_t AlarmButton = NOT_PRESSED;
@@ -81,18 +86,46 @@ void Display_Init( void )
 
     GPIO_InitTypeDef GPIO_InitStruct;               /*gpios initial structure*/
     
-    __HAL_RCC_GPIOB_CLK_ENABLE();                   /*Enable clock on port A*/
+    __HAL_RCC_GPIOB_CLK_ENABLE();                   /*Enable clock on port B*/
   
     GPIO_InitStruct.Pin = GPIO_PIN_15;               /*pin to set as output*/
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;    /*input mode with interrupts enable on falling and rising edges*/    GPIO_InitStruct.Pull = GPIO_NOPULL;             /*no pull-up niether pull-down*/
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;    /*input mode with interrupts enable on falling and rising edges*/    
+    GPIO_InitStruct.Pull = GPIO_NOPULL;             /*no pull-up niether pull-down*/
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    /*pin speed*/
-    /*use the previous parameters to set configuration on pin C15*/
+    /*use the previous parameters to set configuration on pin B15*/
     HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
     
     /*Enable interrupt vector EXTI4_15_IRQ where the CPU will jump if a input change
     happens on pins 4 to 15*/
     HAL_NVIC_SetPriority( EXTI4_15_IRQn, 2, 0 );
     HAL_NVIC_EnableIRQ( EXTI4_15_IRQn );
+    
+    /* Configuration of PWM */
+    __HAL_RCC_TIM14_CLK_ENABLE();
+
+    TIM14Handle.Instance           = TIM14;
+    TIM14Handle.Init.Prescaler     = 32000-1;
+    TIM14Handle.Init.Period        = 2000-1;
+    TIM14Handle.Init.CounterMode   = TIM_COUNTERMODE_UP;
+    // TIM14Handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    TIM14Handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+    // HAL_TIM_Base_Init( &TIM14Handle );
+
+    // TIM_ClockConfigTypeDef sClock = {0};
+    // sClock.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+    // HAL_TIM_ConfigClockSource( &TIM14Handle, &sClock );
+    HAL_TIM_PWM_Init( &TIM14Handle );
+
+    TIM_OC_InitTypeDef TIM_oc = {0};
+    TIM_oc.OCMode = TIM_OCMODE_PWM1;
+    TIM_oc.Pulse = 0;
+    TIM_oc.OCPolarity = TIM_OCPOLARITY_HIGH;
+    TIM_oc.OCMode = TIM_OCFAST_DISABLE;
+    HAL_TIM_PWM_ConfigChannel( &TIM14Handle, &TIM_oc, TIM_CHANNEL_1 );
+    HAL_TIM_PWM_Start( &TIM14Handle, TIM_CHANNEL_1 );
+
+    // uint16_t val = (uint16_t)(__HAL_TIM_GET_AUTORELOAD(&TIM14Handle)+0.0f)*(50/100.0f);
+    __HAL_TIM_SET_COMPARE( &TIM14Handle, TIM_CHANNEL_1, 50 );
 }
 
 /**
@@ -102,7 +135,8 @@ void Display_Init( void )
  * by HAL_GPIO_EXTI_IRQHandler which is in turn called from the 
  * EXTI4_15_IRQHandler interrupt vector
  *
- * @param   GPIO_Pin  [in]  Pin to check
+ * @param   GPIO_Pin     [in]   Pin to check
+ * @param   AlarmButton  [out]  Flag of state of button
  * 
  * @note None
  */
@@ -120,7 +154,8 @@ void HAL_GPIO_EXTI_Falling_Callback( uint16_t GPIO_Pin )
  * by HAL_GPIO_EXTI_IRQHandler which is in turn called from the 
  * EXTI4_15_IRQHandler interrupt vector
  *
- * @param   GPIO_Pin  [in]  Pin to check
+ * @param   GPIO_Pin     [in]   Pin to check
+ * @param   AlarmButton  [out]  Flag of state of button
  * 
  * @note None
  */
@@ -187,7 +222,7 @@ void Display_StMachine( void )
             break;
 
         case DISPLAY_ALERT:
-            if( MSGHandler.alarm == ALARM_TRIGGER )
+            if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == NOT_PRESSED) )
             {
                 HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
                 HEL_LCD_String( &hlcd, "    ALARM!!!" );
@@ -206,8 +241,7 @@ void Display_StMachine( void )
 
             if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == IS_PRESSED) )
             {
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_String( &hlcd, "            " );
+                MSGHandler.alarm = NO_ALARM;
             }
             else if( (MSGHandler.alarm == ALARM_SET) && (AlarmButton == IS_PRESSED) )
             {
@@ -226,21 +260,19 @@ void Display_StMachine( void )
                 HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
                 HEL_LCD_String( &hlcd, "   " );
             }
+            else
+            {}
 
             ClockMsg.msg = BUTTON_RELEASED;
             (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
             break;
 
         case BUTTON_RELEASED:
-            if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == IS_PRESSED) )
+            if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == IS_RELEASED) )
             {
-                MSGHandler.alarm = NO_ALARM;
                 Status = HAL_RTC_DeactivateAlarm( &hrtc, RTC_ALARM_A );
                 /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
                 assert_error( Status == HAL_OK, RTC_DEACTICATE_ALARM_RET_ERROR );
-
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_String( &hlcd, "            " );
             }
 
             // ClockMsg.msg = BUTTON_RELEASED;

@@ -226,4 +226,18 @@ extern QUEUE_HandleTypeDef ClockQueue;
 /**
   @} */
 
+/** 
+  * @defgroup Alarm Button
+  @{ */
+#define NOT_PRESSED  (uint8_t)0  /*!< The button is not pressed */
+#define IS_PRESSED   (uint8_t)1  /*!< The button is pressed     */
+#define IS_RELEASED  (uint8_t)2  /*!< The button is released    */
+/**
+  @} */
+
+/**
+ * @brief  Struct type variable to handle the SPI
+ */
+extern uint8_t AlarmButton;
+
 #endif
