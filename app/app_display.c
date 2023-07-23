@@ -208,13 +208,21 @@ void Display_StMachine( void )
         case ALARM_ACTIVE:
             if( MSGHandler.alarm == ALARM_SET )
             {
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_Data( &hlcd, 'A' );
+                Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+                Status = HEL_LCD_Data( &hlcd, 'A' );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_DATA_RET_ERROR );
             }
             else
             {
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_Data( &hlcd, ' ' );
+                Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+                Status = HEL_LCD_Data( &hlcd, ' ' );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_DATA_RET_ERROR );
             }
 
             ClockMsg.msg = DISPLAY_ALERT;
@@ -224,8 +232,12 @@ void Display_StMachine( void )
         case DISPLAY_ALERT:
             if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == NOT_PRESSED) )
             {
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_String( &hlcd, "    ALARM!!!" );
+                Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+                Status = HEL_LCD_String( &hlcd, "    ALARM!!!" );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
                 CounterMin++;
             }
 
@@ -257,11 +269,11 @@ void Display_StMachine( void )
                 HEL_LCD_Backlight( &hlcd, LCD_ON );
             }
 
-            ClockMsg.msg = ONE_SECOND_PASSED;
+            ClockMsg.msg = ONE_MINUTE_PASSED;
             (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
             break;
 
-        case ONE_SECOND_PASSED:
+        case ONE_MINUTE_PASSED:
             if( CounterMin == NUM_60 )
             {
                 CounterMin = NUM_0; 
@@ -292,15 +304,27 @@ void Display_StMachine( void )
             }
             else if( (MSGHandler.alarm == ALARM_SET) && (AlarmButton == IS_PRESSED) )
             {
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_String( &hlcd, "   ALARM=" );
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_9 );
-                HEL_LCD_String( &hlcd, alarm );
+                Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+                Status = HEL_LCD_String( &hlcd, "   ALARM=" );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
+                Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_9 );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+                Status = HEL_LCD_String( &hlcd, alarm );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
             }
             else if( (MSGHandler.alarm == NO_ALARM) && (AlarmButton == IS_PRESSED) )
             {
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_String( &hlcd, "ALARM NO CONFIG " );
+                Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+                Status = HEL_LCD_String( &hlcd, "ALARM NO CONFIG " );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
             }
             else
             {}
@@ -322,8 +346,12 @@ void Display_StMachine( void )
             else if( (MSGHandler.alarm == NO_ALARM) && (AlarmButton == IS_RELEASED) )
             {
                 AlarmButton = NOT_PRESSED;
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_String( &hlcd, "   " );
+                Status = HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_SETCUR_RET_ERROR );
+                Status = HEL_LCD_String( &hlcd, "   " );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, LCD_STRING_RET_ERROR );
             }
             else if( (MSGHandler.alarm == ALARM_SET) && (AlarmButton == IS_RELEASED) )
             {

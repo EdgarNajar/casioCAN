@@ -20,7 +20,7 @@
 #define DISPLAY_ALARM      (uint8_t)7   /*!< Display alarm      */
 #define BUZZER             (uint8_t)8   /*!< Button is pressed  */
 #define BLINK_BLACKLIGHT   (uint8_t)9   /*!< Button is pressed  */
-#define ONE_SECOND_PASSED  (uint8_t)10  /*!< Button is pressed  */
+#define ONE_MINUTE_PASSED  (uint8_t)10  /*!< Button is pressed  */
 #define BUTTON_PRESSED     (uint8_t)11  /*!< Button is pressed  */
 #define BUTTON_RELEASED    (uint8_t)12  /*!< Button is released */
 #define BLINK              (uint8_t)13  /*!< To toggle the LCD  */
