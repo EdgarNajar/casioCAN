@@ -31,14 +31,24 @@ APP_MsgTypeDef ClockMsg;
 SPI_HandleTypeDef SpiHandle;
 
 /**
- * @brief  Struct type variable to handle the PWM
+ * @brief  Struct type variable to handle TIM
  */
 TIM_HandleTypeDef TIM14Handle;
 
 /**
- * @brief  Struct type variable to handle the SPI
+ * @brief  Struct type variable to handle the PWM
+ */
+TIM_OC_InitTypeDef sConfig;
+
+/**
+ * @brief  State of button
  */
 uint8_t AlarmButton = NOT_PRESSED;
+
+/**
+ * @brief  Counter for one minute
+ */
+uint8_t CounterMin = NUM_0;
 
 /**
  * @brief   **Initialization of the LCD**
@@ -91,7 +101,7 @@ void Display_Init( void )
     GPIO_InitStruct.Pin = GPIO_PIN_15;               /*pin to set as output*/
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;    /*input mode with interrupts enable on falling and rising edges*/    
     GPIO_InitStruct.Pull = GPIO_NOPULL;             /*no pull-up niether pull-down*/
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;    /*pin speed*/
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;    /*pin speed*/
     /*use the previous parameters to set configuration on pin B15*/
     HAL_GPIO_Init( GPIOB, &GPIO_InitStruct );
     
@@ -104,28 +114,18 @@ void Display_Init( void )
     __HAL_RCC_TIM14_CLK_ENABLE();
 
     TIM14Handle.Instance           = TIM14;
-    TIM14Handle.Init.Prescaler     = 32000-1;
-    TIM14Handle.Init.Period        = 2000-1;
+    TIM14Handle.Init.Prescaler     = PRESCALER_TIM14;
+    TIM14Handle.Init.Period        = PERIOD_TIM14;
     TIM14Handle.Init.CounterMode   = TIM_COUNTERMODE_UP;
-    // TIM14Handle.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    TIM14Handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-    // HAL_TIM_Base_Init( &TIM14Handle );
-
-    // TIM_ClockConfigTypeDef sClock = {0};
-    // sClock.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    // HAL_TIM_ConfigClockSource( &TIM14Handle, &sClock );
     HAL_TIM_PWM_Init( &TIM14Handle );
 
-    TIM_OC_InitTypeDef TIM_oc = {0};
-    TIM_oc.OCMode = TIM_OCMODE_PWM1;
-    TIM_oc.Pulse = 0;
-    TIM_oc.OCPolarity = TIM_OCPOLARITY_HIGH;
-    TIM_oc.OCMode = TIM_OCFAST_DISABLE;
-    HAL_TIM_PWM_ConfigChannel( &TIM14Handle, &TIM_oc, TIM_CHANNEL_1 );
+    sConfig.OCMode     = TIM_OCMODE_PWM1;
+    sConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfig.OCFastMode = TIM_OCFAST_DISABLE;
+    sConfig.Pulse = PULSE_TIM14;
+    HAL_TIM_PWM_ConfigChannel( &TIM14Handle, &sConfig, TIM_CHANNEL_1 );
     HAL_TIM_PWM_Start( &TIM14Handle, TIM_CHANNEL_1 );
 
-    // uint16_t val = (uint16_t)(__HAL_TIM_GET_AUTORELOAD(&TIM14Handle)+0.0f)*(50/100.0f);
-    __HAL_TIM_SET_COMPARE( &TIM14Handle, TIM_CHANNEL_1, 50 );
 }
 
 /**
@@ -226,6 +226,53 @@ void Display_StMachine( void )
             {
                 HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
                 HEL_LCD_String( &hlcd, "    ALARM!!!" );
+                CounterMin++;
+            }
+
+            ClockMsg.msg = BUZZER;
+            (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+            break;
+
+        case BUZZER:
+            if( (CounterMin % NUM_2 == NUM_0) && ((MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == NOT_PRESSED)) )
+            {
+                __HAL_TIM_SET_COMPARE( &TIM14Handle, TIM_CHANNEL_1, DUTY_CYCLE_50 );
+            }
+            else
+            {
+                __HAL_TIM_SET_COMPARE( &TIM14Handle, TIM_CHANNEL_1, DUTY_CYCLE_0 );
+            }
+
+            ClockMsg.msg = BLINK_BLACKLIGHT;
+            (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+            break;
+
+        case BLINK_BLACKLIGHT:
+            if( (CounterMin % NUM_2 == NUM_0) && ((MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == NOT_PRESSED)) )
+            {
+                HEL_LCD_Backlight( &hlcd, LCD_OFF );
+            }
+            else
+            {
+                HEL_LCD_Backlight( &hlcd, LCD_ON );
+            }
+
+            ClockMsg.msg = ONE_SECOND_PASSED;
+            (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+            break;
+
+        case ONE_SECOND_PASSED:
+            if( CounterMin == NUM_60 )
+            {
+                CounterMin = NUM_0; 
+                AlarmButton = NOT_PRESSED;
+                MSGHandler.alarm = NO_ALARM;
+
+                HEL_LCD_Backlight( &hlcd, LCD_ON );
+                HAL_TIM_PWM_Stop( &TIM14Handle, TIM_CHANNEL_1 );
+                Status = HAL_RTC_DeactivateAlarm( &hrtc, RTC_ALARM_A );
+                /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+                assert_error( Status == HAL_OK, RTC_DEACTICATE_ALARM_RET_ERROR );
             }
 
             ClockMsg.msg = BUTTON_PRESSED;
@@ -241,7 +288,7 @@ void Display_StMachine( void )
 
             if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == IS_PRESSED) )
             {
-                MSGHandler.alarm = NO_ALARM;
+                MSGHandler.alarm = ALARM_DEACTIVATE;
             }
             else if( (MSGHandler.alarm == ALARM_SET) && (AlarmButton == IS_PRESSED) )
             {
@@ -255,11 +302,6 @@ void Display_StMachine( void )
                 HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
                 HEL_LCD_String( &hlcd, "ALARM NO CONFIG " );
             }
-            else if( (MSGHandler.alarm == NO_ALARM) && (AlarmButton == IS_RELEASED) )
-            {
-                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
-                HEL_LCD_String( &hlcd, "   " );
-            }
             else
             {}
 
@@ -268,12 +310,27 @@ void Display_StMachine( void )
             break;
 
         case BUTTON_RELEASED:
-            if( (MSGHandler.alarm == ALARM_TRIGGER) && (AlarmButton == IS_RELEASED) )
+            if( (MSGHandler.alarm == ALARM_DEACTIVATE) && (AlarmButton == IS_RELEASED) )
             {
+                AlarmButton = NOT_PRESSED;
+                MSGHandler.alarm = NO_ALARM;
+                HEL_LCD_Backlight( &hlcd, LCD_ON );
                 Status = HAL_RTC_DeactivateAlarm( &hrtc, RTC_ALARM_A );
                 /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
                 assert_error( Status == HAL_OK, RTC_DEACTICATE_ALARM_RET_ERROR );
             }
+            else if( (MSGHandler.alarm == NO_ALARM) && (AlarmButton == IS_RELEASED) )
+            {
+                AlarmButton = NOT_PRESSED;
+                HEL_LCD_SetCursor( &hlcd, ROW_TWO, COL_0 );
+                HEL_LCD_String( &hlcd, "   " );
+            }
+            else if( (MSGHandler.alarm == ALARM_SET) && (AlarmButton == IS_RELEASED) )
+            {
+                AlarmButton = NOT_PRESSED;
+            }
+            else
+            {}
 
             // ClockMsg.msg = BUTTON_RELEASED;
             // (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );

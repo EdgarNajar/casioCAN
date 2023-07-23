@@ -45,9 +45,10 @@ typedef struct _APP_MsgTypeDef
 /** 
   * @defgroup Alarm status
   @{ */
-#define NO_ALARM       (uint8_t)0  /*!< No alarm is set */
-#define ALARM_SET      (uint8_t)1  /*!< An alarm is set */
-#define ALARM_TRIGGER  (uint8_t)2  /*!< Alarm trigger   */
+#define NO_ALARM          (uint8_t)0  /*!< No alarm is set  */
+#define ALARM_SET         (uint8_t)1  /*!< An alarm is set  */
+#define ALARM_TRIGGER     (uint8_t)2  /*!< Alarm trigger    */
+#define ALARM_DEACTIVATE  (uint8_t)3  /*!< Alarm deactivate */
 /**
   @} */
 

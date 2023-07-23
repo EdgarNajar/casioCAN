@@ -257,16 +257,16 @@ void HEL_LCD_MspInit( LCD_HandleTypeDef *hlcd )
  */
 /* cppcheck-suppress misra-c2012-8.4 ; function defined in hel_lcd.h file */
 /* cppcheck-suppress misra-c2012-2.7 ; function defined in HAL library */
-void HAL_TIM_PWM_MspInit( TIM_HandleTypeDef *TIM4Handler )
+void HAL_TIM_PWM_MspInit( TIM_HandleTypeDef *htim )
 {
     GPIO_InitTypeDef GPIO_InitStruct;
 
-    __GPIOC_CLK_ENABLE();
     __TIM14_CLK_ENABLE();
+    __GPIOC_CLK_ENABLE();
     
     GPIO_InitStruct.Pin = GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF2_TIM14;
     HAL_GPIO_Init( GPIOC, &GPIO_InitStruct );

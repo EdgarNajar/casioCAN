@@ -109,16 +109,6 @@ void Clock_Init( void )
     ClockQueue.Elements = 10;
     ClockQueue.Size     = sizeof( APP_MsgTypeDef );
     HIL_QUEUE_Init( &ClockQueue );
-
-    TIM_HandleTypeDef TIM_Handler;    /*TIM initial structure*/
-    __HAL_RCC_TIM1_CLK_ENABLE();      /*Enable clock on TIM1*/
-
-    TIM_Handler.Instance = TIM3;                          /*Timer TIM to configure*/
-    TIM_Handler.Init.Prescaler = 320;                    /*preescaler Tfre / Prescaler*/
-    TIM_Handler.Init.CounterMode = TIM_COUNTERMODE_UP;    /*count from 0 to overflow value*/
-    TIM_Handler.Init.Period = 100;                      /*limit count (overflow)*/
-    /*use the previous parameters to set configuration on TIM1*/
-    HAL_TIM_Base_Init( &TIM_Handler );
 }
 
 /**
