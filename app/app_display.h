@@ -30,10 +30,11 @@
 /** 
   * @defgroup TIM14 init values
   @{ */
-#define PRESCALER_TIM14  (uint8_t)10    /*!< Prescaler 10    */
-#define PERIOD_TIM14     (uint8_t)3200  /*!< Period 3200     */
-#define DUTY_CYCLE_50    (uint8_t)1600  /*!< Duty clycle 50% */
-#define DUTY_CYCLE_0     (uint8_t)0     /*!< Duty clycle 0%  */
+#define PRESCALER_TIM14  (uint8_t)3200  /*!< Prescaler for 1KHz */
+#define PERIOD_TIM14     (uint8_t)1000  /*!< Period of 1 second */
+#define PULSE_TIM14      (uint8_t)0     /*!< Pulse 0            */
+#define DUTY_CYCLE_50    (uint8_t)500   /*!< Duty clycle 50%    */
+#define DUTY_CYCLE_0     (uint8_t)0     /*!< Duty clycle 0%     */
 /**
   @} */
 
