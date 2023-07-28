@@ -358,10 +358,9 @@ void Display_StMachine( void )
                 AlarmButton = NOT_PRESSED;
             }
             else
-            {}
+            {
+            }
 
-            // ClockMsg.msg = BUTTON_RELEASED;
-            // (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
             break;
 
         default:
