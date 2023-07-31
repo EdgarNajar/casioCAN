@@ -232,8 +232,8 @@ void Serial_StMachine( void )
         case STATE_ALARM:
             if( CanTp_SingleFrameRx( &NewMessage[NUM_1], &NewMessage[NUM_0] ) == NUM_1 )
             {
-                MSGHandler.tm.tm_hour = NewMessage[NUM_1];
-                MSGHandler.tm.tm_min  = NewMessage[NUM_2];
+                MSGHandler.tm.tm_alarm_hour = NewMessage[NUM_1];
+                MSGHandler.tm.tm_alarm_min  = NewMessage[NUM_2];
 
                 if( Valid_Alarm( &NewMessage[NUM_0] ) == NUM_1 )
                 {

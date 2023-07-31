@@ -86,3 +86,30 @@ void TIM16_FDCAN_IT0_IRQHandler( void )
 {
     HAL_FDCAN_IRQHandler( &CANHandler );
 }
+
+/**
+ * @brief   **RTC alarm interrupt vector**
+ *
+ * Activates the RTC alarm interrupt vector
+ *
+ * @note None
+ */
+/* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
+void RTC_TAMP_IRQHandler( void )
+{
+    HAL_RTC_AlarmIRQHandler( &hrtc );
+}
+
+/**
+ * @brief   **GPIOB pin 15 button interrupt vector**
+ *
+ * The program will jump here every time the button has been pressed
+ *
+ * @note None
+ */
+/* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
+void EXTI4_15_IRQHandler( void )
+{
+    /*HAL library functions that attend interrupt on inputs*/
+    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_15 );
+}

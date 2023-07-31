@@ -17,7 +17,7 @@ static void Clock_StMachine( void );
 /**
  * @brief  Structure type variable to initialize the RTC
  */
-static RTC_HandleTypeDef hrtc;
+RTC_HandleTypeDef hrtc;
 
 /**
  * @brief  Structure type valriable for user RTC date initialization
@@ -48,7 +48,7 @@ extern Scheduler_HandleTypeDef SchedulerHandler;
  * @brief   **RTC peripheral**
  *
  * This function configures and initialize the RTC peripheral
- * in 24 hours format and no output signal enble
+ * in 24 hours format and no output signal enable
  *
  * @param   hrtc [out] Structure type variable used to configure the RTC
  *
@@ -95,12 +95,14 @@ void Clock_Init( void )
     sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
     sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
     sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-    // sAlarm.AlarmDateWeekDay = 0x12;
-    sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+    sAlarm.AlarmDateWeekDay = RTC_WEEKDAY_TUESDAY;
+    sAlarm.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY;
     sAlarm.Alarm = RTC_ALARM_A;
-    Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+    Status = HAL_RTC_DeactivateAlarm( &hrtc, RTC_ALARM_A );
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, RTC_SETDEFALARM_RET_ERROR );
+
+    MSGHandler.alarm = NO_ALARM;
 
     static APP_MsgTypeDef Clock_buffer[10];
     ClockQueue.Buffer   = Clock_buffer;
@@ -155,7 +157,7 @@ void Clock_StMachine( void )
             assert_error( Status == HAL_OK, RTC_SETTIME_RET_ERROR );
             
             MSGHandler.msg = DISPLAY;
-            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, RTC_TAMP_IRQn );
             break;
 
         case CHANGE_DATE:
@@ -170,18 +172,23 @@ void Clock_StMachine( void )
             assert_error( Status == HAL_OK, RTC_SETDATE_RET_ERROR );
             
             MSGHandler.msg = DISPLAY;
-            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, RTC_TAMP_IRQn );
             break;
 
         case CHANGE_ALARM:
-            sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_hour;
-            sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_min;
-            Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BCD );
+            /* Setting alarm in BCD format */
+            sAlarm.AlarmTime.Hours   = MSGHandler.tm.tm_alarm_hour;
+            sAlarm.AlarmTime.Minutes = MSGHandler.tm.tm_alarm_min;
+            Status = HAL_RTC_DeactivateAlarm( &hrtc, RTC_ALARM_A );
+            /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+            assert_error( Status == HAL_OK, RTC_DEACTICATE_ALARM_RET_ERROR );
+            Status = HAL_RTC_SetAlarm_IT( &hrtc, &sAlarm, RTC_FORMAT_BCD );
             /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
             assert_error( Status == HAL_OK, RTC_SETALARM_RET_ERROR );
             
+            MSGHandler.alarm = ALARM_SET;
             MSGHandler.msg = DISPLAY;
-            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, TIM16_FDCAN_IT0_IRQn );
+            (void)HIL_QUEUE_WriteISR( &SerialQueue, &MSGHandler, RTC_TAMP_IRQn );
             break;
 
         case DISPLAY:
@@ -214,9 +221,15 @@ void Change_Display( void )
     /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
     assert_error( Status == HAL_OK, RTC_GETDATE_RET_ERROR );
     /* Get the RTC current Alarm */
-    Status = HAL_RTC_SetAlarm( &hrtc, &sAlarm, RTC_FORMAT_BIN );
-    /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
-    assert_error( Status == HAL_OK, RTC_GETALARM_RET_ERROR );
+    if( (MSGHandler.alarm == ALARM_SET) && (AlarmButton == IS_PRESSED) )
+    {
+        Status = HAL_RTC_GetTime( &hrtc, &sTime, RTC_FORMAT_BIN );
+        /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+        assert_error( Status == HAL_OK, RTC_GETTIME_RET_ERROR );
+        Status = HAL_RTC_GetAlarm( &hrtc, &sAlarm, RTC_ALARM_A, RTC_FORMAT_BIN );
+        /* cppcheck-suppress misra-c2012-11.8 ; Nedded to the macro to detect erros */
+        assert_error( Status == HAL_OK, RTC_GETALARM_RET_ERROR );
+    }
 
     ClockMsg.tm.tm_mday = sDate.Date;
     ClockMsg.tm.tm_mon  = sDate.Month;
@@ -227,6 +240,26 @@ void Change_Display( void )
     ClockMsg.tm.tm_min  = sTime.Minutes;
     ClockMsg.tm.tm_sec  = sTime.Seconds;
 
+    ClockMsg.tm.tm_alarm_hour = sAlarm.AlarmTime.Hours;
+    ClockMsg.tm.tm_alarm_min  = sAlarm.AlarmTime.Minutes;
+
     ClockMsg.msg = DISPLAY;
-    (void)HIL_QUEUE_Write( &ClockQueue, &ClockMsg );
+    (void)HIL_QUEUE_WriteISR( &ClockQueue, &ClockMsg, SPI1_IRQn );
+}
+
+/**
+ * @brief   **RTC alarm event callback**
+ *
+ * The callback will change the state of the alarm to ALARM_TRIGGER
+ * to indicate its activated
+ *
+ * @param   hrtc       [in]  Structure type variable to handle the RTC
+ * @param   MSGHandler [out] Structure type variable for time data
+ * 
+ * @note  None
+ */
+/* cppcheck-suppress misra-c2012-8.4 ; function defined in HAL library */
+void HAL_RTC_AlarmAEventCallback( RTC_HandleTypeDef *hrtc )
+{
+    MSGHandler.alarm = ALARM_TRIGGER;
 }

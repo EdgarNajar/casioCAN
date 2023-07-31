@@ -14,7 +14,27 @@
 /** 
   * @defgroup States for display data
   @{ */
-#define DISPLAY_MSG  (uint8_t)4  /*!< Display message */
+#define DISPLAY_MSG        (uint8_t)4   /*!< Display message    */
+#define ALARM_ACTIVE       (uint8_t)5   /*!< Display alarm      */
+#define DISPLAY_ALERT      (uint8_t)6   /*!< Display alert      */
+#define DISPLAY_ALARM      (uint8_t)7   /*!< Display alarm      */
+#define BUZZER             (uint8_t)8   /*!< Button is pressed  */
+#define BLINK_BLACKLIGHT   (uint8_t)9   /*!< Button is pressed  */
+#define ONE_MINUTE_PASSED  (uint8_t)10  /*!< Button is pressed  */
+#define BUTTON_PRESSED     (uint8_t)11  /*!< Button is pressed  */
+#define BUTTON_RELEASED    (uint8_t)12  /*!< Button is released */
+#define BLINK              (uint8_t)13  /*!< To toggle the LCD  */
+/**
+  @} */
+
+/** 
+  * @defgroup TIM14 init values
+  @{ */
+#define PRESCALER_TIM14  (uint8_t)3200  /*!< Prescaler for 1KHz */
+#define PERIOD_TIM14     (uint8_t)1000  /*!< Period of 1 second */
+#define PULSE_TIM14      (uint8_t)0     /*!< Pulse 0            */
+#define DUTY_CYCLE_50    (uint8_t)500   /*!< Duty clycle 50%    */
+#define DUTY_CYCLE_0     (uint8_t)0     /*!< Duty clycle 0%     */
 /**
   @} */
 
@@ -36,6 +56,7 @@
 #define NUM_12 (uint8_t)12  /*!< Number 12 */
 #define NUM_13 (uint8_t)13  /*!< Number 13 */
 #define NUM_14 (uint8_t)14  /*!< Number 14 */
+#define NUM_60 (uint8_t)60  /*!< Number 60 */
 /**
   @} */
 

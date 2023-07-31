@@ -22,6 +22,8 @@ typedef struct _APP_TmTypeDef
     uint32_t tm_sec;         /*!< Seconds,  range 0 to 59          */
     uint32_t tm_min;         /*!< Minutes, range 0 to 59           */
     uint32_t tm_hour;        /*!< Hours, range 0 to 23             */
+    uint32_t tm_alarm_min;   /*!< Minutes, range 0 to 59           */
+    uint32_t tm_alarm_hour;  /*!< Hours, range 0 to 23             */
     uint32_t tm_mday;        /*!< Day of the month, range 1 to 31  */
     uint32_t tm_mon;         /*!< Month, range 0 to 11             */
     uint32_t tm_year;        /*!< Years in rage 1900 2100          */
@@ -35,9 +37,20 @@ typedef struct _APP_TmTypeDef
   */
 typedef struct _APP_MsgTypeDef
 {
+    uint8_t alarm;        /*!< Store the status of the alarm     */
     uint8_t msg;          /*!< Store the message type to send    */
     APP_TmTypeDef tm;     /*!< Time and date in stdlib tm format */
 }APP_MsgTypeDef;
+
+/** 
+  * @defgroup Alarm status
+  @{ */
+#define NO_ALARM          (uint8_t)0  /*!< No alarm is set  */
+#define ALARM_SET         (uint8_t)1  /*!< An alarm is set  */
+#define ALARM_TRIGGER     (uint8_t)2  /*!< Alarm trigger    */
+#define ALARM_DEACTIVATE  (uint8_t)3  /*!< Alarm deactivate */
+/**
+  @} */
 
 /**
   * @brief   Enum for kind af message
@@ -100,6 +113,11 @@ extern uint32_t tick_display;
 extern SPI_HandleTypeDef SpiHandle;
 
 /**
+ * @brief  Structure type variable to initialize the RTC
+ */
+extern RTC_HandleTypeDef hrtc;
+
+/**
  * @brief  Struct type variable to clock messages
  */
 extern APP_MsgTypeDef ClockMsg;
@@ -122,6 +140,7 @@ typedef enum _App_ErrorsCode
     RTC_SETDEFTIME_RET_ERROR,
     RTC_SETDEFDATE_RET_ERROR,
     RTC_SETDEFALARM_RET_ERROR,
+    RTC_DEACTICATE_ALARM_RET_ERROR,
     RTC_GETTIME_RET_ERROR,
     RTC_GETDATE_RET_ERROR,
     RTC_GETALARM_RET_ERROR,
@@ -132,6 +151,7 @@ typedef enum _App_ErrorsCode
     LCD_INIT_RET_ERROR,
     LCD_SETCUR_RET_ERROR,
     LCD_STRING_RET_ERROR,
+    LCD_DATA_RET_ERROR,
     SPI_TRAN_RET_ERROR,
     PWR_CONVOLSCA_RET_ERROR,
     RCC_OSCCON_RET_ERROR,
@@ -207,5 +227,19 @@ extern QUEUE_HandleTypeDef ClockQueue;
 #define NUM32_1        (uint32_t)1    /*!< Number 1, 32 bits       */
 /**
   @} */
+
+/** 
+  * @defgroup Alarm Button
+  @{ */
+#define NOT_PRESSED  (uint8_t)0  /*!< The button is not pressed */
+#define IS_PRESSED   (uint8_t)1  /*!< The button is pressed     */
+#define IS_RELEASED  (uint8_t)2  /*!< The button is released    */
+/**
+  @} */
+
+/**
+ * @brief  Struct type variable to handle the SPI
+ */
+extern uint8_t AlarmButton;
 
 #endif
